@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
  * JPA Auditing 어노테이션들을 모두 활성화할 수 있도록 Application 클래스에 활성화 어노테이션(@EnableJpaAuditing)을 추가해야한다.
  */
 @Getter
-@Setter
 @MappedSuperclass   // JPA Entity 클래스들이 BaseTimeEntity을 상속할 경우 필드들(createdDate, modifiedDate)도 칼럼으로 인식하도록 한다.
 @EntityListeners(AuditingEntityListener.class)  // 이 클래스에 Auditing 기능을 포함시킨다.
 public abstract class BaseTimeEntity {

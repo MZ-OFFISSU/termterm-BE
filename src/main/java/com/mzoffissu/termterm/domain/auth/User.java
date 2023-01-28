@@ -9,8 +9,6 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
-import java.time.LocalDateTime;
-
 
 /**
  * 컬럼은 임의로 설정하였습니다. 정책이 나오면 같이 회의하면서 수정해요
@@ -88,35 +86,30 @@ public class User extends BaseTimeEntity {
 
     public User updatePicture(String picture){
         this.picture = picture;
-        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
 
     public User deletePicture(){
         this.picture = null;
-        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
 
     public User updateNickname(String nickname){
         this.nickname = nickname;
-        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
 
     public User updateIntroduction(String introduction){
         this.introduction = introduction;
-        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
 
     public User updateJob(String job){
         this.job = job;
-        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
@@ -129,7 +122,6 @@ public class User extends BaseTimeEntity {
 
     public User updateDomain(String domain){
         this.domain = domain;
-        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
