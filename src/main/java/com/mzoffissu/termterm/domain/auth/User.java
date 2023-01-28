@@ -9,6 +9,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 
 /**
@@ -26,7 +27,7 @@ public class User extends BaseTimeEntity {
     private String socialId;
 
     @Column
-    @Size(min = 1, max = 20)
+    @Size(min = 1, max = 30)
     private String name;
 
     @Column(nullable = false)
@@ -49,7 +50,7 @@ public class User extends BaseTimeEntity {
 
     @Column
     @PositiveOrZero
-    private Integer yearCareer;
+    private Integer yearCareer = 0;
 
     @Column
     @Size(max = 20)
@@ -57,7 +58,7 @@ public class User extends BaseTimeEntity {
 
     @Column
     @PositiveOrZero
-    private Integer point;
+    private Integer point = 0;
 
 
     /**
@@ -70,49 +71,52 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SocialLoginType socialType;
+
     @Builder
-    public User(String socialId, String name, String email, String picture, String nickname, Role role) {
+    public User(String socialId, String name, String email, String picture, String nickname, Role role, SocialLoginType socialLoginType) {
         this.socialId = socialId;
         this.name = name;
         this.email = email;
         this.picture = picture;
         this.nickname = nickname;
         this.role = role;
-    }
-
-    public User update(String name, String picture){
-        this.name = name;
-        this.picture = picture;
-
-        return this;
+        this.socialType = socialLoginType;
     }
 
     public User updatePicture(String picture){
         this.picture = picture;
+        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
 
     public User deletePicture(){
         this.picture = null;
+        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
 
     public User updateNickname(String nickname){
         this.nickname = nickname;
+        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
 
     public User updateIntroduction(String introduction){
         this.introduction = introduction;
+        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
 
     public User updateJob(String job){
         this.job = job;
+        setModifiedDate(LocalDateTime.now());
 
         return this;
     }
@@ -125,6 +129,19 @@ public class User extends BaseTimeEntity {
 
     public User updateDomain(String domain){
         this.domain = domain;
+        setModifiedDate(LocalDateTime.now());
+
+        return this;
+    }
+
+    public User addPoint(Integer point){
+        this.point += point;
+
+        return this;
+    }
+
+    public User subPoint(Integer point){
+        this.point -= point;
 
         return this;
     }
