@@ -1,8 +1,9 @@
 package com.mzoffissu.termterm.service.auth;
 
 import com.mzoffissu.termterm.domain.auth.Role;
+import com.mzoffissu.termterm.domain.auth.SocialLoginType;
 import com.mzoffissu.termterm.domain.auth.User;
-import com.mzoffissu.termterm.dto.auth.KakaoGetTokenURLResponseDto;
+import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
 import com.mzoffissu.termterm.dto.auth.KakaoUserInfoDto;
 import com.mzoffissu.termterm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class KakaoService {
-    private static final Integer CONN_TIMEOUT = 30;  // 30초
+    private static final Integer CONN_TIMEOUT = 15 * 1000;  // 15초
+    private static final String KAKAO_TOKEN_REQUEST_URL = "https://kauth.kakao.com/oauth/token";
+    private static final String KAKAO_USERINFO_REQUEST_URL = "https://kapi.kakao.com/v2/user/me";
 
     @Value("${auth.kakao.client-id}")
     private String CLIENT_ID;
@@ -34,15 +37,13 @@ public class KakaoService {
      * 인가 코드로 토큰 받기
      */
     public String getToken(String authorizationCode) throws IOException {
-        // 인가코드로 토큰받기
-        String host = "https://kauth.kakao.com/oauth/token";
-        URL url = new URL(host);
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        URL url = new URL(KAKAO_TOKEN_REQUEST_URL);
         String token = "";
 
         try{
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("POST");
-            urlConnection.setConnectTimeout(CONN_TIMEOUT * 1000);
+            urlConnection.setConnectTimeout(CONN_TIMEOUT);
             urlConnection.setDoOutput(true);
             urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
 
@@ -57,7 +58,7 @@ public class KakaoService {
             bw.flush();
 
             // 실제 서버로 Request 요청 하는 부분. (응답 코드를 받는다. 200 성공, 나머지 에러)
-            Integer responseCode = urlConnection.getResponseCode();
+            urlConnection.getResponseCode();
 
             BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
             String line = "";
@@ -70,7 +71,7 @@ public class KakaoService {
             JSONParser parser = new JSONParser();
             JSONObject elem = (JSONObject) parser.parse(result);
 
-            KakaoGetTokenURLResponseDto response = KakaoGetTokenURLResponseDto.builder()
+            TokenResponseDto response = TokenResponseDto.builder()
                     .token_type(elem.get("token_type").toString())
                     .access_token(elem.get("access_token").toString())
                     .expires_in(elem.get("expires_in").toString())
@@ -93,18 +94,16 @@ public class KakaoService {
      * 받은 토큰을 이용하여 사용자 정보를 카카오 서버로부터 불러오기
      */
     public KakaoUserInfoDto getUserInfo(String accessToken) throws IOException{
-        String host = "https://kapi.kakao.com/v2/user/me";
+        URL url = new URL(KAKAO_USERINFO_REQUEST_URL);
         KakaoUserInfoDto userInfo;
 
         try{
-            URL url = new URL(host);
-
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestProperty("Authorization", "Bearer " + accessToken);
             urlConnection.setRequestMethod("GET");
             urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
 
-            Integer responseCode = urlConnection.getResponseCode();
+            urlConnection.getResponseCode();
 
             BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
             String line = "";
@@ -161,11 +160,11 @@ public class KakaoService {
 
         User user = User.builder()
                 .socialId(socialId)
-//                .name(name)
+                .name(nickname)
                 .email(email)
-                .nickname(nickname)
                 .picture(thumbnailImageUrl)
                 .role(Role.USER)
+                .socialLoginType(SocialLoginType.KAKAO)
                 .build();
         userRepository.save(user);
     }
