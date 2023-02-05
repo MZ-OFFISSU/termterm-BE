@@ -9,6 +9,7 @@ import com.mzoffissu.termterm.dto.auth.GoogleUserInfoDto;
 import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
 import com.mzoffissu.termterm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -25,6 +26,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GoogleService {
     private static final String GOOGLE_TOKEN_REQUEST_URL = "https://oauth2.googleapis.com";
     private static final String GOOGLE_USERINFO_REQUEST_URL = "https://people.googleapis.com/v1/people/me?personFields=names";
@@ -128,5 +130,6 @@ public class GoogleService {
                 .socialLoginType(SocialLoginType.GOOGLE)
                 .build();
         userRepository.save(user);
+        log.info("회원가입 : {} ({})", user.getEmail(), user.getName());
     }
 }

@@ -7,6 +7,7 @@ import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
 import com.mzoffissu.termterm.dto.auth.KakaoUserInfoDto;
 import com.mzoffissu.termterm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class KakaoService {
     private static final Integer CONN_TIMEOUT = 15 * 1000;  // 15초
     private static final String KAKAO_TOKEN_REQUEST_URL = "https://kauth.kakao.com/oauth/token";
@@ -92,6 +94,8 @@ public class KakaoService {
 
     /**
      * 받은 토큰을 이용하여 사용자 정보를 카카오 서버로부터 불러오기
+     *
+     * name 권한 획득 시 .name(name)으로 바꿀 것
      */
     public KakaoUserInfoDto getUserInfo(String accessToken) throws IOException{
         URL url = new URL(KAKAO_USERINFO_REQUEST_URL);
@@ -128,7 +132,7 @@ public class KakaoService {
 
             userInfo = KakaoUserInfoDto.builder()
                     .socialId(socialId)
-//                    .name(name)
+                    .name(nickname)     // name 권한 획득 시 .name(name)으로 바꿀 것
                     .email(email)
                     .nickname(nickname)
                     .isDefaultImage(is_default_image)
@@ -167,5 +171,6 @@ public class KakaoService {
                 .socialLoginType(SocialLoginType.KAKAO)
                 .build();
         userRepository.save(user);
+        log.info("회원가입 : {} ({})", user.getEmail(), user.getName());
     }
 }
