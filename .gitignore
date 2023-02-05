@@ -39,3 +39,7 @@ out/
 
 ### properties ###
 *.yml
+
+### log ###
+logs/
+log/

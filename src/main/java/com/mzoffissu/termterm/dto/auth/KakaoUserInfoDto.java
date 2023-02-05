@@ -5,11 +5,11 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class KakaoUserInfoDto {
-    private String socialId;
-    private String name;
-    private String email;
-    private String nickname;
+public class KakaoUserInfoDto extends UserInfoDto{
+//    private String socialId;
+//    private String name;
+//    private String email;
+//    private String nickname;
     private Boolean isDefaultImage;
-    private String thumbnailImageUrl;
+//    private String thumbnailImageUrl;
 }

@@ -1,14 +1,14 @@
 package com.mzoffissu.termterm.service.auth;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mzoffissu.termterm.domain.auth.Role;
 import com.mzoffissu.termterm.domain.auth.SocialLoginType;
 import com.mzoffissu.termterm.domain.auth.User;
 import com.mzoffissu.termterm.dto.auth.GoogleUserInfoDto;
 import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
+import com.mzoffissu.termterm.dto.auth.UserInfoDto;
 import com.mzoffissu.termterm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -25,7 +25,8 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class GoogleService {
+@Slf4j
+public class GoogleService extends SocialAuthService{
     private static final String GOOGLE_TOKEN_REQUEST_URL = "https://oauth2.googleapis.com";
     private static final String GOOGLE_USERINFO_REQUEST_URL = "https://people.googleapis.com/v1/people/me?personFields=names";
 
@@ -44,6 +45,7 @@ public class GoogleService {
     /**
      * 인가 코드로 토큰 받기
      */
+    @Override
     public TokenResponseDto getToken(String code) throws IOException {
         try {
             Map<String, Object> params = new HashMap<>();
@@ -83,32 +85,60 @@ public class GoogleService {
     /**
      * 받은 토큰을 이용하여 사용자 정보를 구글 서버로부터 불러오기
      */
+    @Override
     public GoogleUserInfoDto getUserInfo(TokenResponseDto tokenResponse) throws IOException{
-        ObjectMapper objectMapper = new ObjectMapper();
         String idToken = tokenResponse.getId_token();
         String requestUrl = UriComponentsBuilder.fromHttpUrl(GOOGLE_TOKEN_REQUEST_URL + "/tokeninfo").queryParam("id_token", idToken).toUriString();
+        GoogleUserInfoDto userInfo;
         try{
             String resultJson = restTemplate.getForObject(requestUrl, String.class);
 
-            if(resultJson != null){
-                GoogleUserInfoDto userInfoDto = objectMapper.readValue(resultJson, new TypeReference<GoogleUserInfoDto>() {});
-                return userInfoDto;
-            }
-            else{
-                throw new Exception("Google OAuth failed!");
-            }
+            JSONParser parser = new JSONParser();
+            JSONObject elem = (JSONObject) parser.parse(resultJson);
+
+            userInfo = GoogleUserInfoDto.builder()
+                    .iss(elem.get("iss").toString())
+                    .azp(elem.get("azp").toString())
+                    .aud(elem.get("aud").toString())
+                    .iat(elem.get("iat").toString())
+                    .exp(elem.get("exp").toString())
+                    .alg(elem.get("alg").toString())
+                    .kid(elem.get("kid").toString())
+                    .typ(elem.get("typ").toString())
+                    .email_verified(elem.get("email_verified").toString())
+                    .at_hash(elem.get("at_hash").toString())
+                    .given_name(elem.get("given_name").toString())
+                    .family_name(elem.get("family_name").toString())
+                    .locale(elem.get("locale").toString())
+                    .build();
+            userInfo.setName(elem.get("name").toString());
+            userInfo.setEmail(elem.get("email").toString());
+            userInfo.setNickname(elem.get("name").toString());
+            userInfo.setPicture(elem.get("picture").toString());
+            userInfo.setSocialId(elem.get("sub").toString());
+
+//        ObjectMapper objectMapper = new ObjectMapper();
+//            if(resultJson != null){
+//                GoogleUserInfoDto userInfoDto = objectMapper.readValue(resultJson, new TypeReference<GoogleUserInfoDto>() {});
+//                return userInfoDto;
+//            }
+//            else{
+//                throw new Exception("Google OAuth failed!");
+//            }
         }catch (Exception e){
             e.printStackTrace();
+            return GoogleUserInfoDto.builder().build();
         }
 
-        return new GoogleUserInfoDto();
+        return userInfo;
     }
 
     /**
      * 회원 등록이 안 되어 있을 경우 회원가입
      */
-    public void googleSignup(GoogleUserInfoDto userInfo) {
-        String socialId = userInfo.getSub();
+    @Override
+    public void signup(UserInfoDto userInfo) {
+        String socialId = userInfo.getSocialId();
 
         Boolean isRegistered = !userRepository.findBySocialId(socialId).equals(Optional.empty());
         if (isRegistered) {
@@ -128,5 +158,6 @@ public class GoogleService {
                 .socialLoginType(SocialLoginType.GOOGLE)
                 .build();
         userRepository.save(user);
+        log.info("회원가입 : {} ({})", user.getEmail(), user.getName());
     }
 }

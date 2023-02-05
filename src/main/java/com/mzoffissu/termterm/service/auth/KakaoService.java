@@ -5,8 +5,10 @@ import com.mzoffissu.termterm.domain.auth.SocialLoginType;
 import com.mzoffissu.termterm.domain.auth.User;
 import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
 import com.mzoffissu.termterm.dto.auth.KakaoUserInfoDto;
+import com.mzoffissu.termterm.dto.auth.UserInfoDto;
 import com.mzoffissu.termterm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -20,7 +22,8 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class KakaoService {
+@Slf4j
+public class KakaoService extends SocialAuthService{
     private static final Integer CONN_TIMEOUT = 15 * 1000;  // 15초
     private static final String KAKAO_TOKEN_REQUEST_URL = "https://kauth.kakao.com/oauth/token";
     private static final String KAKAO_USERINFO_REQUEST_URL = "https://kapi.kakao.com/v2/user/me";
@@ -36,9 +39,9 @@ public class KakaoService {
     /**
      * 인가 코드로 토큰 받기
      */
-    public String getToken(String authorizationCode) throws IOException {
+    @Override
+    public TokenResponseDto getToken(String authorizationCode) throws IOException {
         URL url = new URL(KAKAO_TOKEN_REQUEST_URL);
-        String token = "";
 
         try{
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -80,20 +83,22 @@ public class KakaoService {
                     .scope(elem.get("scope").toString())
                     .build();
 
-            token = response.getAccess_token();
+            return response;
 
         }catch (IOException | ParseException e){
             e.printStackTrace();
-            return "";
+            return TokenResponseDto.builder().build();
         }
-
-        return token;
     }
 
     /**
      * 받은 토큰을 이용하여 사용자 정보를 카카오 서버로부터 불러오기
+     *
+     * name 권한 획득 시 .name(name)으로 바꿀 것
      */
-    public KakaoUserInfoDto getUserInfo(String accessToken) throws IOException{
+    @Override
+    public KakaoUserInfoDto getUserInfo(TokenResponseDto tokenResponse) throws IOException{
+        String accessToken = tokenResponse.getAccess_token();
         URL url = new URL(KAKAO_USERINFO_REQUEST_URL);
         KakaoUserInfoDto userInfo;
 
@@ -127,13 +132,14 @@ public class KakaoService {
             String thumbnail_image_url = profile.get("thumbnail_image_url").toString();
 
             userInfo = KakaoUserInfoDto.builder()
-                    .socialId(socialId)
-//                    .name(name)
-                    .email(email)
-                    .nickname(nickname)
                     .isDefaultImage(is_default_image)
-                    .thumbnailImageUrl(thumbnail_image_url)
                     .build();
+
+            userInfo.setSocialId(socialId);
+            userInfo.setName(nickname);
+            userInfo.setEmail(email);
+            userInfo.setNickname(nickname);
+            userInfo.setPicture(thumbnail_image_url);
 
         }catch (IOException | ParseException e){
             e.printStackTrace();
@@ -145,7 +151,8 @@ public class KakaoService {
     /**
      * 회원 등록이 안 되어 있을 경우 회원가입
      */
-    public void kakaoSignup(KakaoUserInfoDto userInfo) {
+    @Override
+    public void signup(UserInfoDto userInfo) {
         String socialId = userInfo.getSocialId();
 
         Boolean isRegistered = !userRepository.findBySocialId(socialId).equals(Optional.empty());
@@ -156,16 +163,17 @@ public class KakaoService {
 //        String name = userInfo.getName();
         String email = userInfo.getEmail();
         String nickname = userInfo.getNickname();
-        String thumbnailImageUrl = userInfo.getThumbnailImageUrl();
+        String picture = userInfo.getPicture();
 
         User user = User.builder()
                 .socialId(socialId)
                 .name(nickname)
                 .email(email)
-                .picture(thumbnailImageUrl)
+                .picture(picture)
                 .role(Role.USER)
                 .socialLoginType(SocialLoginType.KAKAO)
                 .build();
         userRepository.save(user);
+        log.info("회원가입 : {} ({})", user.getEmail(), user.getName());
     }
 }
