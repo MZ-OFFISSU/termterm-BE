@@ -8,7 +8,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class RestTemplateConfig {
@@ -23,7 +23,7 @@ public class RestTemplateConfig {
 
         return restTemplateBuilder
                 .requestFactory(() -> new BufferingClientHttpRequestFactory(httpRequestFactory))
-                .additionalMessageConverters(new StringHttpMessageConverter(Charset.forName("UTF-8")))
+                .additionalMessageConverters(new StringHttpMessageConverter(StandardCharsets.UTF_8))
                 .build();
     }
 }

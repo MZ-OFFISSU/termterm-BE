@@ -6,6 +6,9 @@ import com.mzoffissu.termterm.domain.auth.User;
 import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
 import com.mzoffissu.termterm.dto.auth.KakaoUserInfoDto;
 import com.mzoffissu.termterm.dto.auth.UserInfoDto;
+import com.mzoffissu.termterm.exception.AuthorityExceptionType;
+import com.mzoffissu.termterm.exception.BizException;
+import com.mzoffissu.termterm.exception.InternalServerExceptionType;
 import com.mzoffissu.termterm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
 
@@ -40,11 +44,13 @@ public class KakaoService extends SocialAuthService{
      * 인가 코드로 토큰 받기
      */
     @Override
-    public TokenResponseDto getToken(String authorizationCode) throws IOException {
-        URL url = new URL(KAKAO_TOKEN_REQUEST_URL);
-
+    public TokenResponseDto getToken(String authorizationCode){
+        URL url;
+        HttpURLConnection urlConnection;
         try{
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            url = new URL(KAKAO_TOKEN_REQUEST_URL);
+
+            urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("POST");
             urlConnection.setConnectTimeout(CONN_TIMEOUT);
             urlConnection.setDoOutput(true);
@@ -61,10 +67,14 @@ public class KakaoService extends SocialAuthService{
             bw.flush();
 
             // 실제 서버로 Request 요청 하는 부분. (응답 코드를 받는다. 200 성공, 나머지 에러)
-            urlConnection.getResponseCode();
+            Integer responseCode = urlConnection.getResponseCode();
+            if(responseCode != 200){
+                log.error("카카오 토큰 요청 오류 : {}", url);
+                throw new BizException(AuthorityExceptionType.KAKAO_CONNECTION_ERROR);
+            }
 
             BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-            String line = "";
+            String line;
             String result = "";
             while ((line = br.readLine()) != null) {
                 result += line;
@@ -74,7 +84,7 @@ public class KakaoService extends SocialAuthService{
             JSONParser parser = new JSONParser();
             JSONObject elem = (JSONObject) parser.parse(result);
 
-            TokenResponseDto response = TokenResponseDto.builder()
+            return TokenResponseDto.builder()
                     .token_type(elem.get("token_type").toString())
                     .access_token(elem.get("access_token").toString())
                     .expires_in(elem.get("expires_in").toString())
@@ -83,26 +93,30 @@ public class KakaoService extends SocialAuthService{
                     .scope(elem.get("scope").toString())
                     .build();
 
-            return response;
-
-        }catch (IOException | ParseException e){
-            e.printStackTrace();
-            return TokenResponseDto.builder().build();
+        }catch (ParseException e){
+            log.error("JSON 파싱 실패 : {}", e.getMessage());
+            throw new BizException(InternalServerExceptionType.INTERNAL_SERVER_ERROR);
+        }catch (MalformedURLException e){
+            log.error("URL 형식 오류 : {}", KAKAO_TOKEN_REQUEST_URL);
+            throw new BizException(InternalServerExceptionType.INTERNAL_SERVER_ERROR);
+        }catch (IOException e){
+            log.error("urlConnection 오류");
+            throw new BizException(AuthorityExceptionType.KAKAO_CONNECTION_ERROR);
         }
     }
 
     /**
      * 받은 토큰을 이용하여 사용자 정보를 카카오 서버로부터 불러오기
-     *
      * name 권한 획득 시 .name(name)으로 바꿀 것
      */
     @Override
-    public KakaoUserInfoDto getUserInfo(TokenResponseDto tokenResponse) throws IOException{
+    public KakaoUserInfoDto getUserInfo(TokenResponseDto tokenResponse){
         String accessToken = tokenResponse.getAccess_token();
-        URL url = new URL(KAKAO_USERINFO_REQUEST_URL);
+        URL url;
         KakaoUserInfoDto userInfo;
 
         try{
+            url = new URL(KAKAO_USERINFO_REQUEST_URL);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestProperty("Authorization", "Bearer " + accessToken);
             urlConnection.setRequestMethod("GET");
@@ -111,7 +125,7 @@ public class KakaoService extends SocialAuthService{
             urlConnection.getResponseCode();
 
             BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-            String line = "";
+            String line;
             String res = "";
             while((line=br.readLine()) != null) {
                 res += line;
@@ -141,9 +155,15 @@ public class KakaoService extends SocialAuthService{
             userInfo.setNickname(nickname);
             userInfo.setPicture(thumbnail_image_url);
 
-        }catch (IOException | ParseException e){
-            e.printStackTrace();
-            return KakaoUserInfoDto.builder().build();
+        }catch (ParseException e){
+            log.error("JSON 파싱 실패 : {}", e.getMessage());
+            throw new BizException(InternalServerExceptionType.INTERNAL_SERVER_ERROR);
+        }catch (MalformedURLException e){
+            log.error("URL 형식 오류 : {}", KAKAO_USERINFO_REQUEST_URL);
+            throw new BizException(InternalServerExceptionType.INTERNAL_SERVER_ERROR);
+        }catch (IOException e){
+            log.error("urlConnection 오류");
+            throw new BizException(AuthorityExceptionType.KAKAO_CONNECTION_ERROR);
         }
         return userInfo;
     }

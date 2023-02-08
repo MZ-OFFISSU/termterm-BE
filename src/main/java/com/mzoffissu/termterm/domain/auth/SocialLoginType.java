@@ -1,8 +1,14 @@
 package com.mzoffissu.termterm.domain.auth;
 
-public enum SocialLoginType {
-    GOOGLE,
-    KAKAO,
-    APPLE
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
+public enum SocialLoginType {
+    GOOGLE("google"),
+    KAKAO("kakao"),
+    APPLE("apple");
+
+    private final String value;
 }
