@@ -15,12 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,15 +25,14 @@ public class AuthController {
     private final KakaoService kakaoService;
 
     @PostMapping("/auth/{socialType}")
-    public ResponseEntity login(@RequestBody Map<String, String> code, @PathVariable("socialType") String socialType){
-        TokenResponseDto tokenResponse;
-        UserInfoDto userInfo;
-        SocialAuthService socialAuthService;
-
-        String authorizationCode = code.get("code");    // code 가 없을 경우 null 들어감
+    public ResponseEntity login(@RequestHeader(name = "auth-code", required = false) String authorizationCode, @PathVariable("socialType") String socialType){
         if(authorizationCode == null){
             throw new BizException(AuthorityExceptionType.NO_AUTHORIZATION_CODE);
         }
+
+        TokenResponseDto tokenResponse;
+        UserInfoDto userInfo;
+        SocialAuthService socialAuthService;
 
         // api 경로 중 google, kakao, apple 여부 확인. 이외가 들어오면 exception
         if(socialType.equals(SocialLoginType.KAKAO.getValue())){
