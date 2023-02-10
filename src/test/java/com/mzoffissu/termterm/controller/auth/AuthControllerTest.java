@@ -15,10 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.TestPropertySources;
@@ -61,10 +58,10 @@ class AuthControllerTest {
         JSONParser parser = new JSONParser();
         String path = "/auth/something";
         String url = HOST + PORT + path;
-        WrongSocialTypeRequestDto requestDto = WrongSocialTypeRequestDto.builder()
-                .code("adsd")
-                .build();
-        HttpEntity<WrongSocialTypeRequestDto> requestEntity = new HttpEntity<>(requestDto);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("auth-code", "assasd");
+        HttpEntity requestEntity = new HttpEntity(headers);
 
         //when
         ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
@@ -77,16 +74,19 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("request body에 code가 없을 경우")
-    public void noCodeInBody() throws Exception{
+    @DisplayName("request header에 code가 없을 경우")
+    public void noCodeInHeader() throws Exception{
         //given
         JSONParser parser = new JSONParser();
         String path = "/auth/kakao";
         String url = HOST + PORT + path;
-        WrongDataDto requestDto = WrongDataDto.builder()
-                .cade("daa")
-                .build();
-        HttpEntity<WrongDataDto> requestEntity = new HttpEntity<>(requestDto);
+//        WrongDataDto requestDto = WrongDataDto.builder()
+//                .cade("daa")
+//                .build();
+//        HttpEntity<WrongDataDto> requestEntity = new HttpEntity<>(requestDto);
+
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity requestEntity = new HttpEntity(headers);
 
         //when
         ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
@@ -99,24 +99,25 @@ class AuthControllerTest {
     }
 
 
-    @Getter
-    static class WrongSocialTypeRequestDto{
-        private String code;
+    @Test
+    @DisplayName("code가 잘못 왔을 경우 504")
+    public void invalidCode() throws Exception{
+        //given
+        JSONParser parser = new JSONParser();
+        String path = "/auth/kakao";
+        String url = HOST + PORT + path;
 
-        @Builder
-        public WrongSocialTypeRequestDto(String code){
-            this.code = code;
-        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("auth-code", "das");
+        HttpEntity requestEntity = new HttpEntity(headers);
 
-    }
+        //when
+        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+        String responseBody = responseEntity.getBody();
+        JSONObject responseJson = (JSONObject) parser.parse(responseBody);
 
-    @Getter
-    static class WrongDataDto{
-        private String cade;
-
-        @Builder
-        public WrongDataDto(String cade){
-            this.cade = cade;
-        }
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+        assertThat(responseJson.get("message")).isEqualTo(AuthorityExceptionType.KAKAO_CONNECTION_ERROR.getMessage());
     }
 }
