@@ -35,7 +35,7 @@ public class User extends BaseTimeEntity {
     @Column(nullable = true)
     private String picture;
 
-    @Column
+    @Column(unique = true)
     @Size(min = 2, max = 10)
     private String nickname;
 
