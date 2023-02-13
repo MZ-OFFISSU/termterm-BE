@@ -6,7 +6,7 @@ import com.mzoffissu.termterm.vo.ResponseMessage;
 import com.mzoffissu.termterm.domain.auth.SocialLoginType;
 import com.mzoffissu.termterm.dto.DefaultResponse;
 import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
-import com.mzoffissu.termterm.dto.auth.UserInfoDto;
+import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.service.auth.GoogleService;
 import com.mzoffissu.termterm.service.auth.KakaoService;
@@ -31,7 +31,7 @@ public class AuthController {
         }
 
         TokenResponseDto tokenResponse;
-        UserInfoDto userInfo;
+        MemberInfoDto memberInfo;
         SocialAuthService socialAuthService;
 
         // api 경로 중 google, kakao, apple 여부 확인. 이외가 들어오면 exception
@@ -45,11 +45,11 @@ public class AuthController {
 
         try {
             tokenResponse = socialAuthService.getToken(authorizationCode);
-            userInfo = socialAuthService.getUserInfo(tokenResponse);
-            socialAuthService.signup(userInfo);
+            memberInfo = socialAuthService.getMemberInfo(tokenResponse);
+            socialAuthService.signup(memberInfo);
 
-            log.info("로그인 : {} ({})", userInfo.getEmail(), userInfo.getName());
-            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS, userInfo), HttpStatus.OK);
+            log.info("로그인 : {} ({})", memberInfo.getEmail(), memberInfo.getName());
+            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS, memberInfo), HttpStatus.OK);
         }
         catch (BizException e){
             log.error(e.getMessage());

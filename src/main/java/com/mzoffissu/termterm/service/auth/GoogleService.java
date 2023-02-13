@@ -1,17 +1,14 @@
 package com.mzoffissu.termterm.service.auth;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mzoffissu.termterm.domain.auth.Role;
 import com.mzoffissu.termterm.domain.auth.SocialLoginType;
-import com.mzoffissu.termterm.domain.auth.User;
-import com.mzoffissu.termterm.dto.auth.GoogleUserInfoDto;
+import com.mzoffissu.termterm.domain.auth.Member;
+import com.mzoffissu.termterm.dto.auth.GoogleMemberInfoDto;
 import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
-import com.mzoffissu.termterm.dto.auth.UserInfoDto;
+import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
 import com.mzoffissu.termterm.exception.AuthorityExceptionType;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.InternalServerExceptionType;
-import com.mzoffissu.termterm.repository.UserRepository;
+import com.mzoffissu.termterm.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -42,7 +39,7 @@ public class GoogleService extends SocialAuthService{
     @Value("${auth.google.redirect-uri}")
     private String REDIRECT_URI;
 
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
     private final RestTemplate restTemplate;
 
     /**
@@ -93,10 +90,10 @@ public class GoogleService extends SocialAuthService{
      * 받은 토큰을 이용하여 사용자 정보를 구글 서버로부터 불러오기
      */
     @Override
-    public GoogleUserInfoDto getUserInfo(TokenResponseDto tokenResponse){
+    public GoogleMemberInfoDto getMemberInfo(TokenResponseDto tokenResponse){
         String idToken = tokenResponse.getId_token();
         String requestUrl = UriComponentsBuilder.fromHttpUrl(GOOGLE_TOKEN_REQUEST_URL + "/tokeninfo").queryParam("id_token", idToken).toUriString();
-        GoogleUserInfoDto userInfo;
+        GoogleMemberInfoDto memberInfo;
         JSONParser parser;
         JSONObject elem;
         String resultJson;
@@ -108,7 +105,7 @@ public class GoogleService extends SocialAuthService{
             elem = (JSONObject) parser.parse(resultJson);
 
 
-            userInfo = GoogleUserInfoDto.builder()
+            memberInfo = GoogleMemberInfoDto.builder()
                     .iss(elem.get("iss").toString())
                     .azp(elem.get("azp").toString())
                     .aud(elem.get("aud").toString())
@@ -123,21 +120,21 @@ public class GoogleService extends SocialAuthService{
                     .family_name(elem.get("family_name").toString())
                     .locale(elem.get("locale").toString())
                     .build();
-            userInfo.setName(elem.get("name").toString());
-            userInfo.setEmail(elem.get("email").toString());
-            userInfo.setNickname(elem.get("name").toString());
-            userInfo.setPicture(elem.get("picture").toString());
-            userInfo.setSocialId(elem.get("sub").toString());
+            memberInfo.setName(elem.get("name").toString());
+            memberInfo.setEmail(elem.get("email").toString());
+            memberInfo.setNickname(elem.get("name").toString());
+            memberInfo.setPicture(elem.get("picture").toString());
+            memberInfo.setSocialId(elem.get("sub").toString());
 
 //            ObjectMapper objectMapper = new ObjectMapper();
 //                if(resultJson != null){
-//                    GoogleUserInfoDto userInfoDto = objectMapper.readValue(resultJson, new TypeReference<GoogleUserInfoDto>() {});
-//                    return userInfoDto;
+//                    GoogleMemberInfoDto memberInfoDto = objectMapper.readValue(resultJson, new TypeReference<GoogleMemberInfoDto>() {});
+//                    return memberInfoDto;
 //                }
 //                else{
 //                    throw new Exception("Google OAuth failed!");
 //                }
-            return userInfo;
+            return memberInfo;
         }catch (ParseException e){
             log.error("JSON 파싱 실패 : {}", e.getMessage());
             throw new BizException(InternalServerExceptionType.INTERNAL_SERVER_ERROR);
@@ -152,27 +149,26 @@ public class GoogleService extends SocialAuthService{
      * 회원 등록이 안 되어 있을 경우 회원가입
      */
     @Override
-    public void signup(UserInfoDto userInfo) {
-        String socialId = userInfo.getSocialId();
+    public void signup(MemberInfoDto memberInfo) {
+        String socialId = memberInfo.getSocialId();
 
-        Boolean isRegistered = !userRepository.findBySocialId(socialId).equals(Optional.empty());
+        Boolean isRegistered = !memberRepository.findBySocialId(socialId).equals(Optional.empty());
         if (isRegistered) {
             return;
         }
 
-        String name = userInfo.getName();
-        String email = userInfo.getEmail();
-        String picture = userInfo.getPicture();
+        String name = memberInfo.getName();
+        String email = memberInfo.getEmail();
+        String picture = memberInfo.getPicture();
 
-        User user = User.builder()
+        Member member = Member.builder()
                 .socialId(socialId)
                 .name(name)
                 .email(email)
                 .picture(picture)
-                .role(Role.USER)
                 .socialLoginType(SocialLoginType.GOOGLE)
                 .build();
-        userRepository.save(user);
-        log.info("회원가입 : {} ({})", user.getEmail(), user.getName());
+        memberRepository.save(member);
+        log.info("회원가입 : {} ({})", member.getEmail(), member.getName());
     }
 }
