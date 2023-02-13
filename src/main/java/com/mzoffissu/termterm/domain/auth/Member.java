@@ -10,13 +10,10 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 
-/**
- * 컬럼은 임의로 설정하였습니다. 정책이 나오면 같이 회의하면서 수정해요
- */
 @Getter
 @NoArgsConstructor
 @Entity
-public class User extends BaseTimeEntity {
+public class Member extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -58,87 +55,72 @@ public class User extends BaseTimeEntity {
     @PositiveOrZero
     private Integer point = 0;
 
-
-    /**
-     * JPA로 데이터베이스로 저장할 때 Enum 값을 어떤 형태로 저장할지를 결정한다.
-     * 기본적으로는 int로 된 숫자가 저장된다.
-     * 숫자로 저장되면 데이터베이스로 확인할 때 그 값이 무슨 코드를 의미하는지 알 수가 없다.
-     * 그래서 문자열 (EnumType.STRING) 로 저장될 수 있도록 선언한다.
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SocialLoginType socialType;
 
     @Builder
-    public User(String socialId, String name, String email, String picture, String nickname, Role role, SocialLoginType socialLoginType) {
+    public Member(String socialId, String name, String email, String picture, String nickname, SocialLoginType socialLoginType) {
         this.socialId = socialId;
         this.name = name;
         this.email = email;
         this.picture = picture;
         this.nickname = nickname;
-        this.role = role;
         this.socialType = socialLoginType;
     }
 
-    public User updatePicture(String picture){
+    public Member updatePicture(String picture){
         this.picture = picture;
 
         return this;
     }
 
-    public User deletePicture(){
+    public Member deletePicture(){
         this.picture = null;
 
         return this;
     }
 
-    public User updateNickname(String nickname){
+    public Member updateNickname(String nickname){
         this.nickname = nickname;
 
         return this;
     }
 
-    public User updateIntroduction(String introduction){
+    public Member updateIntroduction(String introduction){
         this.introduction = introduction;
 
         return this;
     }
 
-    public User updateJob(String job){
+    public Member updateJob(String job){
         this.job = job;
 
         return this;
     }
 
-    public User updateYearCareer(Integer yearCareer){
+    public Member updateYearCareer(Integer yearCareer){
         this.yearCareer = yearCareer;
 
         return this;
     }
 
-    public User updateDomain(String domain){
+    public Member updateDomain(String domain){
         this.domain = domain;
 
         return this;
     }
 
-    public User addPoint(Integer point){
+    public Member addPoint(Integer point){
         this.point += point;
 
         return this;
     }
 
-    public User subPoint(Integer point){
+    public Member subPoint(Integer point){
         this.point -= point;
 
         return this;
     }
 
-    public String getRoleKey(){
-        return this.role.getKey();
-    }
 }

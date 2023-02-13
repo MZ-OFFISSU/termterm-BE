@@ -1,15 +1,14 @@
 package com.mzoffissu.termterm.service.auth;
 
-import com.mzoffissu.termterm.domain.auth.Role;
 import com.mzoffissu.termterm.domain.auth.SocialLoginType;
-import com.mzoffissu.termterm.domain.auth.User;
+import com.mzoffissu.termterm.domain.auth.Member;
 import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
-import com.mzoffissu.termterm.dto.auth.KakaoUserInfoDto;
-import com.mzoffissu.termterm.dto.auth.UserInfoDto;
+import com.mzoffissu.termterm.dto.auth.KakaoMemberInfoDto;
+import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
 import com.mzoffissu.termterm.exception.AuthorityExceptionType;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.InternalServerExceptionType;
-import com.mzoffissu.termterm.repository.UserRepository;
+import com.mzoffissu.termterm.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -30,7 +29,7 @@ import java.util.Optional;
 public class KakaoService extends SocialAuthService{
     private static final Integer CONN_TIMEOUT = 15 * 1000;  // 15초
     private static final String KAKAO_TOKEN_REQUEST_URL = "https://kauth.kakao.com/oauth/token";
-    private static final String KAKAO_USERINFO_REQUEST_URL = "https://kapi.kakao.com/v2/user/me";
+    private static final String KAKAO_MEMBERINFO_REQUEST_URL = "https://kapi.kakao.com/v2/user/me";
 
     @Value("${auth.kakao.client-id}")
     private String CLIENT_ID;
@@ -38,7 +37,7 @@ public class KakaoService extends SocialAuthService{
     @Value("${auth.kakao.redirect-uri}")
     private String REDIRECT_URI;
 
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
     /**
      * 인가 코드로 토큰 받기
@@ -110,13 +109,13 @@ public class KakaoService extends SocialAuthService{
      * name 권한 획득 시 .name(name)으로 바꿀 것
      */
     @Override
-    public KakaoUserInfoDto getUserInfo(TokenResponseDto tokenResponse){
+    public KakaoMemberInfoDto getMemberInfo(TokenResponseDto tokenResponse){
         String accessToken = tokenResponse.getAccess_token();
         URL url;
-        KakaoUserInfoDto userInfo;
+        KakaoMemberInfoDto memberInfo;
 
         try{
-            url = new URL(KAKAO_USERINFO_REQUEST_URL);
+            url = new URL(KAKAO_MEMBERINFO_REQUEST_URL);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestProperty("Authorization", "Bearer " + accessToken);
             urlConnection.setRequestMethod("GET");
@@ -145,55 +144,54 @@ public class KakaoService extends SocialAuthService{
             Boolean is_default_image = (Boolean) profile.get("is_default_image");
             String thumbnail_image_url = profile.get("thumbnail_image_url").toString();
 
-            userInfo = KakaoUserInfoDto.builder()
+            memberInfo = KakaoMemberInfoDto.builder()
                     .isDefaultImage(is_default_image)
                     .build();
 
-            userInfo.setSocialId(socialId);
-            userInfo.setName(nickname);
-            userInfo.setEmail(email);
-            userInfo.setNickname(nickname);
-            userInfo.setPicture(thumbnail_image_url);
+            memberInfo.setSocialId(socialId);
+            memberInfo.setName(nickname);
+            memberInfo.setEmail(email);
+            memberInfo.setNickname(nickname);
+            memberInfo.setPicture(thumbnail_image_url);
 
         }catch (ParseException e){
             log.error("JSON 파싱 실패 : {}", e.getMessage());
             throw new BizException(InternalServerExceptionType.INTERNAL_SERVER_ERROR);
         }catch (MalformedURLException e){
-            log.error("URL 형식 오류 : {}", KAKAO_USERINFO_REQUEST_URL);
+            log.error("URL 형식 오류 : {}", KAKAO_MEMBERINFO_REQUEST_URL);
             throw new BizException(InternalServerExceptionType.INTERNAL_SERVER_ERROR);
         }catch (IOException e){
             log.error("urlConnection 오류");
             throw new BizException(AuthorityExceptionType.KAKAO_CONNECTION_ERROR);
         }
-        return userInfo;
+        return memberInfo;
     }
 
     /**
      * 회원 등록이 안 되어 있을 경우 회원가입
      */
     @Override
-    public void signup(UserInfoDto userInfo) {
-        String socialId = userInfo.getSocialId();
+    public void signup(MemberInfoDto memberInfo) {
+        String socialId = memberInfo.getSocialId();
 
-        Boolean isRegistered = !userRepository.findBySocialId(socialId).equals(Optional.empty());
+        Boolean isRegistered = !memberRepository.findBySocialId(socialId).equals(Optional.empty());
         if (isRegistered) {
             return;
         }
 
-//        String name = userInfo.getName();
-        String email = userInfo.getEmail();
-        String nickname = userInfo.getNickname();
-        String picture = userInfo.getPicture();
+//        String name = memberInfo.getName();
+        String email = memberInfo.getEmail();
+        String nickname = memberInfo.getNickname();
+        String picture = memberInfo.getPicture();
 
-        User user = User.builder()
+        Member member = Member.builder()
                 .socialId(socialId)
                 .name(nickname)
                 .email(email)
                 .picture(picture)
-                .role(Role.USER)
                 .socialLoginType(SocialLoginType.KAKAO)
                 .build();
-        userRepository.save(user);
-        log.info("회원가입 : {} ({})", user.getEmail(), user.getName());
+        memberRepository.save(member);
+        log.info("회원가입 : {} ({})", member.getEmail(), member.getName());
     }
 }
