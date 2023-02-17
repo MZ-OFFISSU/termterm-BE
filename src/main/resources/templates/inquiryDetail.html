@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: header" />
+<body>
+<div class="container">
+  <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+
+  <div class="form-group">
+    <label>문의유형</label>
+    <span class="form-control" th:text="${inquiry.type.description}"></span>
+  </div>
+
+  <div class="form-group">
+    <label>문의내용</label>
+    <textarea class="form-control" th:text="${inquiry.content}"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>상태</label>
+    <span class="form-control" th:text="${inquiry.status.name}"></span>
+  </div>
+
+  <div>
+    <label>이메일</label>
+    <span class="form-control" th:text="${inquiry.email}"></span>
+  </div>
+
+  <u th:if="${inquiry.status.name == '대기 중'}" class="proceed-btn text-primary" th:value="${inquiry.id}" style="cursor:pointer;">처리 완료</u>
+  <u th:if="${inquiry.status.name == '답변 완료'}" class="hold-btn text-primary" th:value="${inquiry.id}" style="cursor:pointer;">답변 대기</u>
+  <u class="delete-btn text-danger" th:value="${inquiry.id}" style="cursor:pointer;">삭제</u>
+  <br/>
+  <div th:replace="fragments/footer :: footer" />
+</div> <!-- /container -->
+<script>
+  window.onload = () =>{
+    const deleteBtn = document.querySelector(".delete-btn");
+    const proceedBtn = document.querySelector(".proceed-btn");
+    const holdBtn = document.querySelector(".hold-btn");
+
+    if(deleteBtn){
+      deleteBtn
+            .addEventListener('click', function(e){
+              let really = confirm('정말로 삭제하시겠습니까?');
+              if(really){
+                axios
+                        .get("/inquiry/delete/" + this.getAttribute("value"))
+                        .then(res => {
+                          alert('문의가 삭제되었습니다.');
+                          location.href = "/";
+                        })
+                        .catch(err => console.error)
+              }
+            })
+    }
+
+    if(proceedBtn){
+      proceedBtn
+            .addEventListener('click', function(e){
+              let really = confirm('처리 완료하셨습니까?');
+              if(really){
+                axios
+                        .get("/inquiry/proceed/" + this.getAttribute("value"))
+                        .then(res => {
+                          alert('문의가 처리되었습니다.');
+                          location.reload();
+                        })
+                        .catch(err => console.error)
+              }
+            })
+    }
+
+    if(holdBtn) {
+      holdBtn
+              .addEventListener('click', function (e) {
+                let really = confirm('문의를 대기 처리 하시겠습니까?');
+                if (really) {
+                  axios
+                          .get("/inquiry/hold/" + this.getAttribute("value"))
+                          .then(res => {
+                            alert('문의가 대기 중이 되었습니다.');
+                            location.reload();
+                          })
+                          .catch(err => console.error)
+                }
+      })}
+    }
+</script>
+</body>
+</html>
