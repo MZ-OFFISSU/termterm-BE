@@ -26,24 +26,24 @@ public class AuthController {
 
     @PostMapping("/auth/{socialType}")
     public ResponseEntity login(@RequestHeader(name = "auth-code", required = false) String authorizationCode, @PathVariable("socialType") String socialType){
-        if(authorizationCode == null){
-            throw new BizException(AuthorityExceptionType.NO_AUTHORIZATION_CODE);
-        }
-
-        TokenResponseDto tokenResponse;
-        MemberInfoDto memberInfo;
-        SocialAuthService socialAuthService;
-
-        // api 경로 중 google, kakao, apple 여부 확인. 이외가 들어오면 exception
-        if(socialType.equals(SocialLoginType.KAKAO.getValue())){
-            socialAuthService = kakaoService;
-        }else if(socialType.equals(SocialLoginType.GOOGLE.getValue())){
-            socialAuthService = googleService;
-        }else{
-            throw new BizException(AuthorityExceptionType.INVALID_SOCIAL_TYPE);
-        }
-
         try {
+            if(authorizationCode == null){
+                throw new BizException(AuthorityExceptionType.NO_AUTHORIZATION_CODE);
+            }
+
+            TokenResponseDto tokenResponse;
+            MemberInfoDto memberInfo;
+            SocialAuthService socialAuthService;
+
+            // api 경로 중 google, kakao, apple 여부 확인. 이외가 들어오면 exception
+            if(socialType.equals(SocialLoginType.KAKAO.getValue())){
+                socialAuthService = kakaoService;
+            }else if(socialType.equals(SocialLoginType.GOOGLE.getValue())){
+                socialAuthService = googleService;
+            }else{
+                throw new BizException(AuthorityExceptionType.INVALID_SOCIAL_TYPE);
+            }
+
             tokenResponse = socialAuthService.getToken(authorizationCode);
             memberInfo = socialAuthService.getMemberInfo(tokenResponse);
             socialAuthService.signup(memberInfo);
