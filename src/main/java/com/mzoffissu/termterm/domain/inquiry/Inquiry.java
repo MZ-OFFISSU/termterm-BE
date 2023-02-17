@@ -34,4 +34,8 @@ public class Inquiry {
         this.type = type;
     }
 
+    public void setStatus(InquiryStatus status){
+        this.status = status;
+    }
+
 }

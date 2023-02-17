@@ -11,13 +11,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class InquiryService {
     private final InquiryRepository inquiryRepository;
 
-    @Transactional(readOnly = false)
+    @Transactional
     public void saveInquiry(InquiryRequestDto inquiryRequestDto) {
         InquiryType inquiryType;
         try {
@@ -34,5 +36,34 @@ public class InquiryService {
                 .build();
 
         inquiryRepository.save(inquiry);
+    }
+
+    public List<Inquiry> findInquiries() {
+        return inquiryRepository.findAll();
+    }
+
+    @Transactional
+    public void deleteInquiry(Long id) {
+        inquiryRepository.deleteById(id);
+    }
+
+    public Inquiry findById(Long id) {
+         Inquiry inquiry = inquiryRepository.findById(id)
+                 .orElseThrow(() -> new BizException(InquiryExceptionType.INVALID_INQUIRY_ID));
+         return inquiry;
+    }
+
+    @Transactional
+    public void proceedInquiry(Long id) {
+        Inquiry inquiry = inquiryRepository.findById(id)
+                .orElseThrow(() -> new BizException(InquiryExceptionType.INVALID_INQUIRY_ID));
+        inquiry.setStatus(InquiryStatus.C);
+    }
+
+    @Transactional
+    public void holdInquiry(Long id) {
+        Inquiry inquiry = inquiryRepository.findById(id)
+                .orElseThrow(() -> new BizException(InquiryExceptionType.INVALID_INQUIRY_ID));
+        inquiry.setStatus(InquiryStatus.A);
     }
 }

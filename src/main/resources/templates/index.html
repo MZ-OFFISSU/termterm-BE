@@ -1,0 +1,57 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: header" />
+<body>
+<div class="container">
+    <div th:replace="fragments/bodyHeader :: bodyHeader" />
+    <div>
+        <table class="table table-striped table-hover" style="table-layout: fixed">
+            <thead>
+                <tr>
+                    <th class="col-1">#</th>
+                    <th class="col-2">문의유형</th>
+                    <th class="col-5">문의내용</th>
+                    <th class="col-2">상태</th>
+                    <th class="col-5">이메일</th>
+                    <th class="col-1">삭제</th>
+                </tr>
+            </thead>
+            <tbody>
+            <tr th:each="inquiry : ${inquiries}" class="inquiry-row">
+                    <td th:text="${inquiry.id}"></td>
+                    <td th:text="${inquiry.type.description}"></td>
+                    <td class="text-truncate"><a th:href="@{/inquiry/detail/{id}(id=${inquiry.id})}" th:text="${inquiry.content}" style="color:black"></a></td>
+                    <td th:text="${inquiry.status.name}"></td>
+                    <td class="text-truncate" th:text="${inquiry.email}"></td>
+                    <td><u class="delete-btn text-danger" style="cursor:pointer;">삭제</u></td>
+                    <input type="hidden" class="row-hidden" value="${inquiry.id}">
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div th:replace="fragments/footer :: footer" />
+</div> <!-- /container -->
+
+<script>
+    let reallyDelete;
+
+    window.onload = () => {
+        document.querySelectorAll(".delete-btn")
+            .forEach(btn =>{
+                btn.addEventListener('click', function(e){
+                    reallyDelete = confirm('정말로 삭제하시겠습니까?');
+                    if(reallyDelete){
+                        axios
+                            .get("/inquiry/delete/" + btn.nextElementSibling.getAttribute("value"))
+                            .then(res => {
+                                alert('문의가 삭제되었습니다.');
+                                btn.parentElement.parentElement.remove();
+                            })
+                            .catch(err => console.error)
+                    }
+                })
+            })
+    }
+</script>
+</body>
+</html>
