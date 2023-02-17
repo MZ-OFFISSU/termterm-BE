@@ -23,8 +23,7 @@
                     <td class="text-truncate"><a th:href="@{/inquiry/detail/{id}(id=${inquiry.id})}" th:text="${inquiry.content}" style="color:black"></a></td>
                     <td th:text="${inquiry.status.name}"></td>
                     <td class="text-truncate" th:text="${inquiry.email}"></td>
-                    <td><u class="delete-btn text-danger" style="cursor:pointer;">삭제</u></td>
-                    <input type="hidden" class="row-hidden" value="${inquiry.id}">
+                    <td><u class="delete-btn text-danger" style="cursor:pointer;" th:value="${inquiry.id}">삭제</u></td>
                 </tr>
             </tbody>
         </table>
@@ -42,7 +41,7 @@
                     reallyDelete = confirm('정말로 삭제하시겠습니까?');
                     if(reallyDelete){
                         axios
-                            .get("/inquiry/delete/" + btn.nextElementSibling.getAttribute("value"))
+                            .get("/inquiry/delete/" + btn.getAttribute("value"))
                             .then(res => {
                                 alert('문의가 삭제되었습니다.');
                                 btn.parentElement.parentElement.remove();
