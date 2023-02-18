@@ -10,10 +10,11 @@
                 <tr>
                     <th class="col-1">#</th>
                     <th class="col-2">문의유형</th>
-                    <th class="col-5">문의내용</th>
+                    <th class="col-8">문의내용</th>
                     <th class="col-2">상태</th>
-                    <th class="col-5">이메일</th>
+                    <th class="col-3">이메일</th>
                     <th class="col-1">삭제</th>
+                    <th class="col-4">문의시간</th>
                 </tr>
             </thead>
             <tbody>
@@ -24,6 +25,7 @@
                     <td th:text="${inquiry.status.name}"></td>
                     <td class="text-truncate" th:text="${inquiry.email}"></td>
                     <td><u class="delete-btn text-danger" style="cursor:pointer;" th:value="${inquiry.id}">삭제</u></td>
+                    <td th:text="${inquiry.getCreatedDate()}"></td>
                 </tr>
             </tbody>
         </table>
