@@ -1,5 +1,6 @@
 package com.mzoffissu.termterm.domain.inquiry;
 
+import com.mzoffissu.termterm.domain.BaseTimeEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,7 @@ import javax.persistence.*;
 @Entity
 @NoArgsConstructor
 @Getter
-public class Inquiry {
+public class Inquiry extends BaseTimeEntity {
     @Id
     @GeneratedValue
     @Column(name = "INQUIRY_ID")

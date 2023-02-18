@@ -11,6 +11,16 @@
   </div>
 
   <div class="form-group">
+    <label>문의시간</label>
+    <span class="form-control" th:text="${inquiry.getCreatedDate()}"></span>
+  </div>
+
+  <div class="form-group">
+    <label>수정시간(답변처리)</label>
+    <span class="form-control" th:text="${inquiry.getModifiedDate()}"></span>
+  </div>
+
+  <div class="form-group">
     <label>문의내용</label>
     <textarea class="form-control" th:text="${inquiry.content}"></textarea>
   </div>

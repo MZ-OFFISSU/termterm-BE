@@ -3,6 +3,7 @@ body {
     padding-top: 20px;
     padding-bottom: 20px;
     background-color: #eef2f9;
+    font-size: 13px;
 }
 
 a{
@@ -38,7 +39,7 @@ a:hover{
 /* Customize container */
 @media (min-width: 768px) {
     .container {
-        max-width: 900px;
+        max-width: 90%;
     }
 }
 .container-narrow > hr {
