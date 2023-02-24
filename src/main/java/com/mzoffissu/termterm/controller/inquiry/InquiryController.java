@@ -6,6 +6,7 @@ import com.mzoffissu.termterm.dto.inquiry.InquiryRequestDto;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.InternalServerExceptionType;
 import com.mzoffissu.termterm.service.inquiry.InquiryService;
+import com.mzoffissu.termterm.service.inquiry.MailService;
 import com.mzoffissu.termterm.vo.ResponseMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +21,13 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class InquiryController {
     private final InquiryService inquiryService;
+    private final MailService mailService;
 
     @PostMapping("/inquiry/save")
     public @ResponseBody ResponseEntity saveInquiry(@RequestBody InquiryRequestDto inquiryRequestDto){
         try {
             inquiryService.saveInquiry(inquiryRequestDto);
+            mailService.sendAcceptMail(inquiryRequestDto);
             log.info("문의사항 접수 - {}", inquiryRequestDto.getEmail());
             return new ResponseEntity<>(DefaultResponse.create(HttpStatus.CREATED.value(), ResponseMessage.INQUIRY_ACCEPTED), HttpStatus.CREATED);
         }
