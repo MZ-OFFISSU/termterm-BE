@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequiredArgsConstructor
 @Slf4j
+@RequestMapping("/v1")
 public class InquiryController {
     private final InquiryService inquiryService;
     private final MailService mailService;

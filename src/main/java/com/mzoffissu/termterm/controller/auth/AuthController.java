@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@RequestMapping("/v1")
 public class AuthController {
     private final GoogleService googleService;
     private final KakaoService kakaoService;
