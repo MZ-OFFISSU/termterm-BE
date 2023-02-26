@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Getter
 public class Inquiry extends BaseTimeEntity {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "INQUIRY_ID")
     private Long id;
 
