@@ -1,5 +1,6 @@
 package com.mzoffissu.termterm.service.inquiry;
 
+import com.mzoffissu.termterm.domain.auth.Member;
 import com.mzoffissu.termterm.domain.inquiry.Inquiry;
 import com.mzoffissu.termterm.domain.inquiry.InquiryStatus;
 import com.mzoffissu.termterm.domain.inquiry.InquiryType;
@@ -8,6 +9,8 @@ import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.InquiryExceptionType;
 import com.mzoffissu.termterm.repository.InquiryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,8 +41,8 @@ public class InquiryService {
         inquiryRepository.save(inquiry);
     }
 
-    public List<Inquiry> findInquiries() {
-        return inquiryRepository.findAll();
+    public Page<Inquiry> findAll(Pageable pageable) {
+        return inquiryRepository.findAll(pageable);
     }
 
     @Transactional
