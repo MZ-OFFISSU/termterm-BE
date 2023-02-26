@@ -21,7 +21,7 @@
             <tr th:each="inquiry : ${inquiries}" class="inquiry-row">
                     <td th:text="${inquiry.id}"></td>
                     <td th:text="${inquiry.type.description}"></td>
-                    <td class="text-truncate"><a th:href="@{/inquiry/detail/{id}(id=${inquiry.id})}" th:text="${inquiry.content}" style="color:black"></a></td>
+                    <td class="text-truncate"><a th:href="@{/v1/inquiry/detail/{id}(id=${inquiry.id})}" th:text="${inquiry.content}" style="color:black"></a></td>
                     <td th:text="${inquiry.status.name}"></td>
                     <td class="text-truncate" th:text="${inquiry.email}"></td>
                     <td><u class="delete-btn text-danger" style="cursor:pointer;" th:value="${inquiry.id}">삭제</u></td>
@@ -30,8 +30,33 @@
             </tbody>
         </table>
     </div>
+
+    <nav style="text-align: center;">
+        <ul class="pagination" th:with="start=${(inquiries.number/maxPage)*maxPage + 1}, end=(${(inquiries.totalPages == 0) ? 1 : (start + (maxPage - 1) < inquiries.totalPages ? start + (maxPage - 1) : inquiries.totalPages)})">
+            <li th:if="${start > 1}">
+                <a th:href="@{/(page=0)}" th:text="'<<'"></a>
+            </li>
+            <li th:if="${start > 1}">
+                <a th:href="@{/(page=${start - maxPage})}" th:text="'<'"></a>
+            </li>
+
+            <li th:each="page: ${#numbers.sequence(start, end)}" style="padding: 4px">
+                <a th:text="${page}" th:href="@{/(page=${page - 1})}"></a>
+            </li>
+
+            <li th:if="${end < inquiries.totalPages}">
+                <a th:href="@{/(page=${start + maxPage})}" th:text="'>'"></a>
+            </li>
+            <li th:if="${end < inquiries.totalPages}">
+                <a th:href="@{/(page=${inquiries.totalPages - 1})}" th:text="'>>'"></a>
+            </li>
+        </ul>
+    </nav>
+
     <div th:replace="fragments/footer :: footer" />
-</div> <!-- /container -->
+</div>
+
+
 
 <script>
     let reallyDelete;
@@ -43,7 +68,7 @@
                     reallyDelete = confirm('정말로 삭제하시겠습니까?');
                     if(reallyDelete){
                         axios
-                            .get("/inquiry/delete/" + btn.getAttribute("value"))
+                            .get("/v1/inquiry/delete/" + btn.getAttribute("value"))
                             .then(res => {
                                 alert('문의가 삭제되었습니다.');
                                 btn.parentElement.parentElement.remove();
