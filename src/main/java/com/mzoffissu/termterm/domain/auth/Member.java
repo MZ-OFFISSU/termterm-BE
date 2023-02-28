@@ -16,6 +16,7 @@ import javax.validation.constraints.Size;
 public class Member extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "MEMBER_ID")
     private Long id;
 
     @Column
@@ -30,7 +31,7 @@ public class Member extends BaseTimeEntity {
     private String email;
 
     @Column(nullable = true)
-    private String picture;
+    private String profileImg;
 
     @Column(unique = true)
     @Size(min = 2, max = 10)
@@ -60,23 +61,23 @@ public class Member extends BaseTimeEntity {
     private SocialLoginType socialType;
 
     @Builder
-    public Member(String socialId, String name, String email, String picture, String nickname, SocialLoginType socialLoginType) {
+    public Member(String socialId, String name, String email, String profileImg, String nickname, SocialLoginType socialLoginType) {
         this.socialId = socialId;
         this.name = name;
         this.email = email;
-        this.picture = picture;
+        this.profileImg = profileImg;
         this.nickname = nickname;
         this.socialType = socialLoginType;
     }
 
-    public Member updatePicture(String picture){
-        this.picture = picture;
+    public Member updateProfileImg(String profileImg){
+        this.profileImg = profileImg;
 
         return this;
     }
 
-    public Member deletePicture(){
-        this.picture = null;
+    public Member deleteProfileImg(){
+        this.profileImg = null;
 
         return this;
     }
