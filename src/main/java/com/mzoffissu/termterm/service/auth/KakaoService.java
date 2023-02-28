@@ -152,7 +152,7 @@ public class KakaoService extends SocialAuthService{
             memberInfo.setName(nickname);
             memberInfo.setEmail(email);
             memberInfo.setNickname(nickname);
-            memberInfo.setPicture(thumbnail_image_url);
+            memberInfo.setProfileImg(thumbnail_image_url);
 
         }catch (ParseException e){
             log.error("JSON 파싱 실패 : {}", e.getMessage());
@@ -182,13 +182,13 @@ public class KakaoService extends SocialAuthService{
 //        String name = memberInfo.getName();
         String email = memberInfo.getEmail();
         String nickname = memberInfo.getNickname();
-        String picture = memberInfo.getPicture();
+        String profileImg = memberInfo.getProfileImg();
 
         Member member = Member.builder()
                 .socialId(socialId)
                 .name(nickname)
                 .email(email)
-                .picture(picture)
+                .profileImg(profileImg)
                 .socialLoginType(SocialLoginType.KAKAO)
                 .build();
         memberRepository.save(member);

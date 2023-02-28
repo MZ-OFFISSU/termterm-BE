@@ -123,7 +123,7 @@ public class GoogleService extends SocialAuthService{
             memberInfo.setName(elem.get("name").toString());
             memberInfo.setEmail(elem.get("email").toString());
             memberInfo.setNickname(elem.get("name").toString());
-            memberInfo.setPicture(elem.get("picture").toString());
+            memberInfo.setProfileImg(elem.get("picture").toString());
             memberInfo.setSocialId(elem.get("sub").toString());
 
 //            ObjectMapper objectMapper = new ObjectMapper();
@@ -159,13 +159,13 @@ public class GoogleService extends SocialAuthService{
 
         String name = memberInfo.getName();
         String email = memberInfo.getEmail();
-        String picture = memberInfo.getPicture();
+        String picture = memberInfo.getProfileImg();
 
         Member member = Member.builder()
                 .socialId(socialId)
                 .name(name)
                 .email(email)
-                .picture(picture)
+                .profileImg(picture)
                 .socialLoginType(SocialLoginType.GOOGLE)
                 .build();
         memberRepository.save(member);

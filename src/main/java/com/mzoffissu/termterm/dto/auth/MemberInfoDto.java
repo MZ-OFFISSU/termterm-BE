@@ -10,5 +10,5 @@ public abstract class MemberInfoDto {
     public String name;
     public String email;
     public String nickname;
-    public String picture;
+    public String profileImg;
 }
