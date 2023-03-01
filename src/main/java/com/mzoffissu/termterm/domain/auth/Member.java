@@ -1,6 +1,7 @@
 package com.mzoffissu.termterm.domain.auth;
 
 import com.mzoffissu.termterm.domain.BaseTimeEntity;
+import com.mzoffissu.termterm.domain.Category;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,8 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @NoArgsConstructor
@@ -59,6 +62,12 @@ public class Member extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SocialLoginType socialType;
+
+    @ManyToMany
+    @JoinTable(name = "MEMBER_CATEGORY",
+        joinColumns = @JoinColumn(name = "MEMBER_ID"),
+            inverseJoinColumns = @JoinColumn(name = "CATEGORY_ID"))
+    private Set<Category> categories = new HashSet<>();
 
     @Builder
     public Member(String socialId, String name, String email, String profileImg, String nickname, SocialLoginType socialLoginType) {
