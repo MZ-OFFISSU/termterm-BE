@@ -28,9 +28,9 @@ public class InquiryController {
     public @ResponseBody ResponseEntity saveInquiry(@RequestBody InquiryRequestDto inquiryRequestDto){
         try {
             inquiryService.saveInquiry(inquiryRequestDto);
-//            mailService.sendAcceptMail(inquiryRequestDto);
+
             log.info("문의사항 접수 - {}", inquiryRequestDto.getEmail());
-            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.CREATED.value(), ResponseMessage.INQUIRY_ACCEPTED), HttpStatus.CREATED);
+            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.CREATED.value(), ResponseMessage.INQUIRY_ACCEPTED, inquiryRequestDto), HttpStatus.CREATED);
         }
         catch (BizException e){
             log.error(e.getMessage());
