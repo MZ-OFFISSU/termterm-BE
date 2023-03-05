@@ -3,7 +3,6 @@ package com.mzoffissu.termterm.controller.auth;
 import com.mzoffissu.termterm.domain.auth.Member;
 import com.mzoffissu.termterm.dto.jwt.TokenDto;
 import com.mzoffissu.termterm.exception.AuthorityExceptionType;
-import com.mzoffissu.termterm.exception.InternalServerExceptionType;
 import com.mzoffissu.termterm.service.auth.MemberService;
 import com.mzoffissu.termterm.vo.ResponseMessage;
 import com.mzoffissu.termterm.domain.auth.SocialLoginType;
@@ -31,82 +30,52 @@ public class AuthController {
 
     @PostMapping("/auth/{socialType}")
     public ResponseEntity login(@RequestHeader(name = "auth-code", required = false) String authorizationCode, @PathVariable("socialType") String socialType){
-        try {
-            if(authorizationCode == null){
-                throw new BizException(AuthorityExceptionType.NO_AUTHORIZATION_CODE);
-            }
+        if(authorizationCode == null){
+            throw new BizException(AuthorityExceptionType.NO_AUTHORIZATION_CODE);
+        }
 
-            TokenResponseDto tokenResponse;
-            MemberInitialInfoDto memberInfo;
-            SocialAuthService socialAuthService;
-            TokenDto tokenDto;
-            SocialLoginType socialLoginType;
+        TokenResponseDto tokenResponse;
+        MemberInitialInfoDto memberInfo;
+        SocialAuthService socialAuthService;
+        TokenDto tokenDto;
+        SocialLoginType socialLoginType;
 
-            // api 경로 중 google, kakao, apple 여부 확인. 이외가 들어오면 exception
-            if(socialType.equals(SocialLoginType.KAKAO.getValue())){
-                socialLoginType = SocialLoginType.KAKAO;
-                socialAuthService = kakaoService;
-            }else if(socialType.equals(SocialLoginType.GOOGLE.getValue())){
-                socialLoginType = SocialLoginType.GOOGLE;
-                socialAuthService = googleService;
-            }else if(socialType.equals(SocialLoginType.APPLE.getValue())){
-                socialLoginType = SocialLoginType.APPLE;
+        // api 경로 중 google, kakao, apple 여부 확인. 이외가 들어오면 exception
+        if(socialType.equals(SocialLoginType.KAKAO.getValue())){
+            socialLoginType = SocialLoginType.KAKAO;
+            socialAuthService = kakaoService;
+        }else if(socialType.equals(SocialLoginType.GOOGLE.getValue())){
+            socialLoginType = SocialLoginType.GOOGLE;
+            socialAuthService = googleService;
+        }else if(socialType.equals(SocialLoginType.APPLE.getValue())){
+            socialLoginType = SocialLoginType.APPLE;
 //                socialAuthService = appleService;
-                socialAuthService = kakaoService;
-            }
-            else{
-                throw new BizException(AuthorityExceptionType.INVALID_SOCIAL_TYPE);
-            }
-
-            tokenResponse = socialAuthService.getToken(authorizationCode);
-            memberInfo = socialAuthService.getMemberInfo(tokenResponse);
-            socialAuthService.signup(memberInfo);
-            Member member = memberService.findByEmailAndSocialType(memberInfo.getEmail(), socialLoginType);
-
-            tokenDto = memberService.createToken(member, memberInfo.getSocialId());
-
-            log.info("로그인 : {} ({})", memberInfo.getEmail(), memberInfo.getName());
-            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS, tokenDto), HttpStatus.OK);
+            socialAuthService = kakaoService;
         }
-        catch (BizException e){
-            log.error(e.getMessage());
-            return new ResponseEntity<>(DefaultResponse.create(e.getBaseExceptionType().getHttpStatus().value(), e.getMessage()), e.getBaseExceptionType().getHttpStatus());
+        else{
+            throw new BizException(AuthorityExceptionType.INVALID_SOCIAL_TYPE);
         }
-        catch (Exception e){
-            log.error(e.getMessage());
-            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.INTERNAL_SERVER_ERROR.value(), InternalServerExceptionType.INTERNAL_SERVER_ERROR.getMessage()), InternalServerExceptionType.INTERNAL_SERVER_ERROR.getHttpStatus());
-        }
+
+        tokenResponse = socialAuthService.getToken(authorizationCode);
+        memberInfo = socialAuthService.getMemberInfo(tokenResponse);
+        socialAuthService.signup(memberInfo);
+        Member member = memberService.findByEmailAndSocialType(memberInfo.getEmail(), socialLoginType);
+
+        tokenDto = memberService.createToken(member, memberInfo.getSocialId());
+
+        log.info("로그인 : {} ({})", memberInfo.getEmail(), memberInfo.getName());
+        return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.LOGIN_SUCCESS, tokenDto), HttpStatus.OK);
     }
 
     @GetMapping("/auth/reissue")
     public ResponseEntity reissue(@RequestHeader("Authorization") String refreshToken){
-        try {
-            TokenDto tokenDto = memberService.reissue(refreshToken);
-            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.TOKEN_REISSUED, tokenDto), HttpStatus.OK);
-        }
-        catch (BizException e){
-            log.error(e.getMessage());
-            return new ResponseEntity<>(DefaultResponse.create(e.getBaseExceptionType().getHttpStatus().value(), e.getMessage()), e.getBaseExceptionType().getHttpStatus());
-        }
-        catch (Exception e){
-            log.error(e.getMessage());
-            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.INTERNAL_SERVER_ERROR.value(), InternalServerExceptionType.INTERNAL_SERVER_ERROR.getMessage()), InternalServerExceptionType.INTERNAL_SERVER_ERROR.getHttpStatus());
-        }
+        TokenDto tokenDto = memberService.reissue(refreshToken);
+        return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.TOKEN_REISSUED, tokenDto), HttpStatus.OK);
     }
 
     @GetMapping("/auth/logout")
     public ResponseEntity logout(@RequestHeader("Authorization") String accessToken){
-        try{
             memberService.logout(accessToken);
             return new ResponseEntity<>(DefaultResponse.create(HttpStatus.NO_CONTENT.value(), ResponseMessage.LOGOUT_SUCCESS), HttpStatus.NO_CONTENT);
-        }
-        catch (BizException e){
-            log.error(e.getMessage());
-            return new ResponseEntity<>(DefaultResponse.create(e.getBaseExceptionType().getHttpStatus().value(), e.getMessage()), e.getBaseExceptionType().getHttpStatus());
-        }
-        catch (Exception e){
-            log.error(e.getMessage());
-            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.INTERNAL_SERVER_ERROR.value(), InternalServerExceptionType.INTERNAL_SERVER_ERROR.getMessage()), InternalServerExceptionType.INTERNAL_SERVER_ERROR.getHttpStatus());
-        }
     }
 }
