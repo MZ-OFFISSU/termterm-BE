@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class GoogleMemberInfoDto extends MemberInfoDto {
+public class GoogleMemberInitialInfoDto extends MemberInitialInfoDto {
     private String iss;
 //    private String sub;
     private String azp;

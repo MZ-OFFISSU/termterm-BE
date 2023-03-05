@@ -1,13 +1,16 @@
 package com.mzoffissu.termterm.service.auth;
 
+import com.mzoffissu.termterm.domain.auth.Authority;
+import com.mzoffissu.termterm.domain.auth.MemberAuth;
 import com.mzoffissu.termterm.domain.auth.SocialLoginType;
 import com.mzoffissu.termterm.domain.auth.Member;
 import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
-import com.mzoffissu.termterm.dto.auth.KakaoMemberInfoDto;
-import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
+import com.mzoffissu.termterm.dto.auth.KakaoMemberInitialInfoDto;
+import com.mzoffissu.termterm.dto.auth.MemberInitialInfoDto;
 import com.mzoffissu.termterm.exception.AuthorityExceptionType;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.InternalServerExceptionType;
+import com.mzoffissu.termterm.repository.AuthorityRepository;
 import com.mzoffissu.termterm.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,13 +18,16 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +36,7 @@ public class KakaoService extends SocialAuthService{
     private static final Integer CONN_TIMEOUT = 15 * 1000;  // 15초
     private static final String KAKAO_TOKEN_REQUEST_URL = "https://kauth.kakao.com/oauth/token";
     private static final String KAKAO_MEMBERINFO_REQUEST_URL = "https://kapi.kakao.com/v2/user/me";
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${auth.kakao.client-id}")
     private String CLIENT_ID;
@@ -38,6 +45,7 @@ public class KakaoService extends SocialAuthService{
     private String REDIRECT_URI;
 
     private final MemberRepository memberRepository;
+    private final AuthorityRepository authorityRepository;
 
     /**
      * 인가 코드로 토큰 받기
@@ -109,10 +117,10 @@ public class KakaoService extends SocialAuthService{
      * name 권한 획득 시 .name(name)으로 바꿀 것
      */
     @Override
-    public KakaoMemberInfoDto getMemberInfo(TokenResponseDto tokenResponse){
+    public KakaoMemberInitialInfoDto getMemberInfo(TokenResponseDto tokenResponse){
         String accessToken = tokenResponse.getAccess_token();
         URL url;
-        KakaoMemberInfoDto memberInfo;
+        KakaoMemberInitialInfoDto memberInfo;
 
         try{
             url = new URL(KAKAO_MEMBERINFO_REQUEST_URL);
@@ -144,7 +152,7 @@ public class KakaoService extends SocialAuthService{
             Boolean is_default_image = (Boolean) profile.get("is_default_image");
             String thumbnail_image_url = profile.get("thumbnail_image_url").toString();
 
-            memberInfo = KakaoMemberInfoDto.builder()
+            memberInfo = KakaoMemberInitialInfoDto.builder()
                     .isDefaultImage(is_default_image)
                     .build();
 
@@ -152,7 +160,7 @@ public class KakaoService extends SocialAuthService{
             memberInfo.setName(nickname);
             memberInfo.setEmail(email);
             memberInfo.setNickname(nickname);
-            memberInfo.setPicture(thumbnail_image_url);
+            memberInfo.setProfileImg(thumbnail_image_url);
 
         }catch (ParseException e){
             log.error("JSON 파싱 실패 : {}", e.getMessage());
@@ -171,10 +179,10 @@ public class KakaoService extends SocialAuthService{
      * 회원 등록이 안 되어 있을 경우 회원가입
      */
     @Override
-    public void signup(MemberInfoDto memberInfo) {
+    public void signup(MemberInitialInfoDto memberInfo) {
         String socialId = memberInfo.getSocialId();
 
-        Boolean isRegistered = !memberRepository.findBySocialId(socialId).equals(Optional.empty());
+        boolean isRegistered = !memberRepository.findByEmailAndSocialType(memberInfo.getEmail(), SocialLoginType.KAKAO).equals(Optional.empty());
         if (isRegistered) {
             return;
         }
@@ -182,14 +190,22 @@ public class KakaoService extends SocialAuthService{
 //        String name = memberInfo.getName();
         String email = memberInfo.getEmail();
         String nickname = memberInfo.getNickname();
-        String picture = memberInfo.getPicture();
+        String profileImg = memberInfo.getProfileImg();
+
+        // DB 에서 ROLE_USER를 찾아서 권한으로 추가한다.
+        Authority authority = authorityRepository
+                .findByAuthorityName(MemberAuth.ROLE_USER).orElseThrow(()->new BizException(AuthorityExceptionType.NOT_FOUND_AUTHORITY));
+
+        Set<Authority> authorities = new HashSet<>();
+        authorities.add(authority);
 
         Member member = Member.builder()
-                .socialId(socialId)
+                .socialId(passwordEncoder.encode(socialId))
                 .name(nickname)
                 .email(email)
-                .picture(picture)
+                .profileImg(profileImg)
                 .socialLoginType(SocialLoginType.KAKAO)
+                .authorities(authorities)
                 .build();
         memberRepository.save(member);
         log.info("회원가입 : {} ({})", member.getEmail(), member.getName());

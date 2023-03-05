@@ -1,6 +1,7 @@
 package com.mzoffissu.termterm.domain.auth;
 
 import com.mzoffissu.termterm.domain.BaseTimeEntity;
+import com.mzoffissu.termterm.domain.Category;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,8 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @NoArgsConstructor
@@ -16,6 +19,7 @@ import javax.validation.constraints.Size;
 public class Member extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "MEMBER_ID")
     private Long id;
 
     @Column
@@ -30,7 +34,7 @@ public class Member extends BaseTimeEntity {
     private String email;
 
     @Column(nullable = true)
-    private String picture;
+    private String profileImg;
 
     @Column(unique = true)
     @Size(min = 2, max = 10)
@@ -59,24 +63,39 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false)
     private SocialLoginType socialType;
 
+    @ManyToMany
+    @JoinTable(name = "MEMBER_CATEGORY",
+        joinColumns = @JoinColumn(name = "MEMBER_ID"),
+            inverseJoinColumns = @JoinColumn(name = "CATEGORY_ID"))
+    private Set<Category> categories = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "member_authority",
+            joinColumns = {@JoinColumn(name = "member_id", referencedColumnName = "member_id")},
+            inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")}
+    )
+    private Set<Authority> authorities = new HashSet<>();
+
     @Builder
-    public Member(String socialId, String name, String email, String picture, String nickname, SocialLoginType socialLoginType) {
+    public Member(String socialId, String name, String email, String profileImg, String nickname, SocialLoginType socialLoginType, Set<Authority> authorities) {
         this.socialId = socialId;
         this.name = name;
         this.email = email;
-        this.picture = picture;
+        this.profileImg = profileImg;
         this.nickname = nickname;
         this.socialType = socialLoginType;
+        this.authorities = authorities;
     }
 
-    public Member updatePicture(String picture){
-        this.picture = picture;
+    public Member updateProfileImg(String profileImg){
+        this.profileImg = profileImg;
 
         return this;
     }
 
-    public Member deletePicture(){
-        this.picture = null;
+    public Member deleteProfileImg(){
+        this.profileImg = null;
 
         return this;
     }
