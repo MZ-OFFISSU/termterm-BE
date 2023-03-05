@@ -19,8 +19,10 @@ public class RefreshToken {
     @Column(name="refresh_token_id")
     private Long id;
 
+    @Column(name = "rt_key")
     private String key;
 
+    @Column(name = "rt_value")
     private String value;
 
     public void updateValue(String token){
