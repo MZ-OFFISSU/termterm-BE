@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class KakaoMemberInfoDto extends MemberInfoDto {
+public class KakaoMemberInitialInfoDto extends MemberInitialInfoDto {
 //    private String socialId;
 //    private String name;
 //    private String email;

@@ -1,13 +1,16 @@
 package com.mzoffissu.termterm.service.auth;
 
+import com.mzoffissu.termterm.domain.auth.Authority;
+import com.mzoffissu.termterm.domain.auth.MemberAuth;
 import com.mzoffissu.termterm.domain.auth.SocialLoginType;
 import com.mzoffissu.termterm.domain.auth.Member;
-import com.mzoffissu.termterm.dto.auth.GoogleMemberInfoDto;
+import com.mzoffissu.termterm.dto.auth.GoogleMemberInitialInfoDto;
 import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
-import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
+import com.mzoffissu.termterm.dto.auth.MemberInitialInfoDto;
 import com.mzoffissu.termterm.exception.AuthorityExceptionType;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.InternalServerExceptionType;
+import com.mzoffissu.termterm.repository.AuthorityRepository;
 import com.mzoffissu.termterm.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,19 +19,19 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class GoogleService extends SocialAuthService{
     private static final String GOOGLE_TOKEN_REQUEST_URL = "https://oauth2.googleapis.com";
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${auth.google.client-id}")
     private String CLIENT_ID;
@@ -40,6 +43,7 @@ public class GoogleService extends SocialAuthService{
     private String REDIRECT_URI;
 
     private final MemberRepository memberRepository;
+    private final AuthorityRepository authorityRepository;
     private final RestTemplate restTemplate;
 
     /**
@@ -90,10 +94,10 @@ public class GoogleService extends SocialAuthService{
      * 받은 토큰을 이용하여 사용자 정보를 구글 서버로부터 불러오기
      */
     @Override
-    public GoogleMemberInfoDto getMemberInfo(TokenResponseDto tokenResponse){
+    public GoogleMemberInitialInfoDto getMemberInfo(TokenResponseDto tokenResponse){
         String idToken = tokenResponse.getId_token();
         String requestUrl = UriComponentsBuilder.fromHttpUrl(GOOGLE_TOKEN_REQUEST_URL + "/tokeninfo").queryParam("id_token", idToken).toUriString();
-        GoogleMemberInfoDto memberInfo;
+        GoogleMemberInitialInfoDto memberInfo;
         JSONParser parser;
         JSONObject elem;
         String resultJson;
@@ -105,7 +109,7 @@ public class GoogleService extends SocialAuthService{
             elem = (JSONObject) parser.parse(resultJson);
 
 
-            memberInfo = GoogleMemberInfoDto.builder()
+            memberInfo = GoogleMemberInitialInfoDto.builder()
                     .iss(elem.get("iss").toString())
                     .azp(elem.get("azp").toString())
                     .aud(elem.get("aud").toString())
@@ -149,10 +153,10 @@ public class GoogleService extends SocialAuthService{
      * 회원 등록이 안 되어 있을 경우 회원가입
      */
     @Override
-    public void signup(MemberInfoDto memberInfo) {
+    public void signup(MemberInitialInfoDto memberInfo) {
         String socialId = memberInfo.getSocialId();
 
-        Boolean isRegistered = !memberRepository.findBySocialId(socialId).equals(Optional.empty());
+        Boolean isRegistered = !memberRepository.findByEmailAndSocialType(memberInfo.getEmail(), SocialLoginType.GOOGLE).equals(Optional.empty());
         if (isRegistered) {
             return;
         }
@@ -161,14 +165,23 @@ public class GoogleService extends SocialAuthService{
         String email = memberInfo.getEmail();
         String picture = memberInfo.getProfileImg();
 
+        // DB 에서 ROLE_USER를 찾아서 권한으로 추가한다.
+        Authority authority = authorityRepository
+                .findByAuthorityName(MemberAuth.ROLE_USER).orElseThrow(()->new BizException(AuthorityExceptionType.NOT_FOUND_AUTHORITY));
+
+        Set<Authority> authorities = new HashSet<>();
+        authorities.add(authority);
+
         Member member = Member.builder()
-                .socialId(socialId)
+                .socialId(passwordEncoder.encode(socialId))
                 .name(name)
                 .email(email)
                 .profileImg(picture)
                 .socialLoginType(SocialLoginType.GOOGLE)
+                .authorities(authorities)
                 .build();
-        memberRepository.save(member);
+
         log.info("회원가입 : {} ({})", member.getEmail(), member.getName());
+        memberRepository.save(member);
     }
 }

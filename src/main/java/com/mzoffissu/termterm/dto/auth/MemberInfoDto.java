@@ -1,14 +1,20 @@
 package com.mzoffissu.termterm.dto.auth;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-public abstract class MemberInfoDto {
-    public String socialId;
-    public String name;
-    public String email;
-    public String nickname;
-    public String profileImg;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class MemberInfoDto {
+    private Long memberId;
+    private String name;
+    private String nickname;
+    private String email;
+    private String profileImage;
+    private String job;
+    private String domain;
+    private String introduction;
+    private Integer point;
+    private Integer yearCareer;
 }

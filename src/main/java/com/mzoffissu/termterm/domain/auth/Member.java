@@ -69,14 +69,23 @@ public class Member extends BaseTimeEntity {
             inverseJoinColumns = @JoinColumn(name = "CATEGORY_ID"))
     private Set<Category> categories = new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "member_authority",
+            joinColumns = {@JoinColumn(name = "member_id", referencedColumnName = "member_id")},
+            inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")}
+    )
+    private Set<Authority> authorities = new HashSet<>();
+
     @Builder
-    public Member(String socialId, String name, String email, String profileImg, String nickname, SocialLoginType socialLoginType) {
+    public Member(String socialId, String name, String email, String profileImg, String nickname, SocialLoginType socialLoginType, Set<Authority> authorities) {
         this.socialId = socialId;
         this.name = name;
         this.email = email;
         this.profileImg = profileImg;
         this.nickname = nickname;
         this.socialType = socialLoginType;
+        this.authorities = authorities;
     }
 
     public Member updateProfileImg(String profileImg){
