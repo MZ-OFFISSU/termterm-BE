@@ -2,9 +2,12 @@ package com.mzoffissu.termterm.controller.auth;
 
 import com.mzoffissu.termterm.dto.DefaultResponse;
 import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
+import com.mzoffissu.termterm.dto.member.MemberNicknameCheckRequestDto;
+import com.mzoffissu.termterm.dto.member.MemberNicknameCheckResponseDto;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.InternalServerExceptionType;
 import com.mzoffissu.termterm.service.auth.MemberService;
+import com.mzoffissu.termterm.vo.ResponseMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,6 +26,33 @@ public class MemberController {
         try{
             MemberInfoDto memberInfoDto = memberService.getMemberInfo(accessToken);
             return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), "", memberInfoDto), HttpStatus.OK);
+        }
+        catch (BizException e){
+            log.error(e.getMessage());
+            return new ResponseEntity<>(DefaultResponse.create(e.getBaseExceptionType().getHttpStatus().value(), e.getMessage()), e.getBaseExceptionType().getHttpStatus());
+        }
+        catch (Exception e){
+            log.error(e.getMessage());
+            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.INTERNAL_SERVER_ERROR.value(), InternalServerExceptionType.INTERNAL_SERVER_ERROR.getMessage()), InternalServerExceptionType.INTERNAL_SERVER_ERROR.getHttpStatus());
+        }
+    }
+
+    @PostMapping("/member/nickname/check")
+    public ResponseEntity isNicknameDuplicated(@RequestBody MemberNicknameCheckRequestDto memberNicknameCheckRequestDto){
+        try{
+            boolean isDuplicated = memberService.isNicknameDuplicated(memberNicknameCheckRequestDto.getNickname());
+
+            MemberNicknameCheckResponseDto responseDto;
+
+            if(isDuplicated){
+                responseDto = new MemberNicknameCheckResponseDto("true");
+                return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.DUPLICATE_NICKNAME, responseDto), HttpStatus.OK);
+            }
+            else{
+                responseDto = new MemberNicknameCheckResponseDto("false");
+                return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.NOT_DUPLICATE_NICKNAME, responseDto), HttpStatus.OK);
+            }
+
         }
         catch (BizException e){
             log.error(e.getMessage());

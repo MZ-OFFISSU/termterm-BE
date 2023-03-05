@@ -151,4 +151,8 @@ public class MemberService {
 
         refreshTokenRepository.deleteRefreshToken(refreshToken);
     }
+
+    public boolean isNicknameDuplicated(String nickname){
+        return memberRepository.existsByNicknameCustom(nickname);
+    }
 }
