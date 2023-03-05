@@ -2,7 +2,6 @@ package com.mzoffissu.termterm.controller.auth;
 
 import com.mzoffissu.termterm.dto.DefaultResponse;
 import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
-import com.mzoffissu.termterm.dto.member.MemberNicknameCheckRequestDto;
 import com.mzoffissu.termterm.dto.member.MemberNicknameCheckResponseDto;
 import com.mzoffissu.termterm.service.auth.MemberService;
 import com.mzoffissu.termterm.vo.ResponseMessage;
@@ -25,9 +24,9 @@ public class MemberController {
         return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), "", memberInfoDto), HttpStatus.OK);
     }
 
-    @PostMapping("/member/nickname/check")
-    public ResponseEntity isNicknameDuplicated(@RequestBody MemberNicknameCheckRequestDto memberNicknameCheckRequestDto){
-        boolean isDuplicated = memberService.isNicknameDuplicated(memberNicknameCheckRequestDto.getNickname());
+    @GetMapping("/member/nickname/check")
+    public ResponseEntity isNicknameDuplicated(@RequestParam String nickname){
+        boolean isDuplicated = memberService.isNicknameDuplicated(nickname);
 
         MemberNicknameCheckResponseDto responseDto;
 
