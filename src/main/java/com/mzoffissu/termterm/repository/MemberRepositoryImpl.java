@@ -24,4 +24,18 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
             return false;
         }
     }
+
+    @Override
+    public boolean existsByNicknameExceptMeCustom(Member member, String newNickname) {
+        try{
+            Member foundMember = em.
+                createQuery("select m from Member m where m.nickname = :nickname", Member.class)
+                .setParameter("nickname", newNickname)
+                .getSingleResult();
+
+            return member != foundMember;
+        }catch (NoResultException e){
+            return false;
+        }
+    }
 }

@@ -1,5 +1,9 @@
 package com.mzoffissu.termterm.repository;
 
+import com.mzoffissu.termterm.domain.auth.Member;
+
 public interface MemberRepositoryCustom {
-    public boolean existsByNicknameCustom(String nickname);
+    boolean existsByNicknameCustom(String nickname);
+
+    boolean existsByNicknameExceptMeCustom(Member member, String newNickname);
 }

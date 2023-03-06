@@ -13,7 +13,8 @@ public enum MemberExceptionType implements BaseExceptionType{
     WRONG_PASSWORD("WRONG_PASSWORD","비밀번호를 잘못 입력하였습니다.", HttpStatus.UNAUTHORIZED),
     NOT_FOUND_PASSWORD("NOT_FOUND_PASSWORD","비밀번호를 입력해주세요",HttpStatus.BAD_REQUEST),
     LOGOUT_MEMBER("LOGOUT_MEMBER","로그아웃된 사용자입니다.",HttpStatus.BAD_REQUEST),
-    SESSION_EXPIRED("SESSION_EXPIRED","세션이 만료되었습니다.", HttpStatus.UNAUTHORIZED);
+    SESSION_EXPIRED("SESSION_EXPIRED","세션이 만료되었습니다.", HttpStatus.UNAUTHORIZED),
+    DUPLICATE_NICKNAME("DUPLICATE_NICKNAME", "이미 사용중인 닉네임입니다.", HttpStatus.BAD_REQUEST);
 
     private final String errorCode;
     private final String message;

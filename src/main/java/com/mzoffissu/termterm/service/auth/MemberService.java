@@ -5,13 +5,16 @@ import com.mzoffissu.termterm.domain.auth.SocialLoginType;
 import com.mzoffissu.termterm.domain.jwt.RefreshToken;
 import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
 import com.mzoffissu.termterm.dto.jwt.TokenDto;
+import com.mzoffissu.termterm.dto.member.MemberInfoUpdateRequestDto;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.JwtExceptionType;
 import com.mzoffissu.termterm.exception.MemberExceptionType;
+import com.mzoffissu.termterm.exception.S3UploadExceptionType;
 import com.mzoffissu.termterm.jwt.CustomSocialIdAuthToken;
 import com.mzoffissu.termterm.jwt.TokenProvider;
 import com.mzoffissu.termterm.repository.MemberRepository;
 import com.mzoffissu.termterm.repository.RefreshTokenRepository;
+import com.mzoffissu.termterm.service.s3.S3Uploader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -20,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -30,6 +34,7 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final S3Uploader s3Uploader;
 
     public static final String BEARER_PREFIX = "Bearer ";
 
@@ -144,9 +149,8 @@ public class MemberService {
 
     @Transactional
     public void logout(String token) {
-        String accessToken = resolveToken(token);
-        String memberId = tokenProvider.getMemberIdByToken(accessToken);
-        RefreshToken refreshToken = refreshTokenRepository.findByKey(memberId)
+        Member member = getMemberByToken(token);
+        RefreshToken refreshToken = refreshTokenRepository.findByKey(member.getId().toString())
                 .orElseThrow(() -> new BizException(MemberExceptionType.LOGOUT_MEMBER));
 
         refreshTokenRepository.deleteRefreshToken(refreshToken);
@@ -154,5 +158,52 @@ public class MemberService {
 
     public boolean isNicknameDuplicated(String nickname){
         return memberRepository.existsByNicknameCustom(nickname);
+    }
+
+    protected boolean isNicknameDuplicatedExceptMe(Member member, String newNickname){
+        return memberRepository.existsByNicknameExceptMeCustom(member, newNickname);
+    }
+    @Transactional
+    public MemberInfoDto updateMemberInfo(String token, MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) {
+        Member member = getMemberByToken(token);
+
+        boolean isDuplicated = isNicknameDuplicatedExceptMe(member, memberInfoUpdateRequestDto.getNickname());
+        if(isDuplicated){
+            throw new BizException(MemberExceptionType.DUPLICATE_NICKNAME);
+        }
+        try {
+            member.updateInfo(memberInfoUpdateRequestDto);
+        }catch (Exception e){
+            throw new BizException(MemberExceptionType.DUPLICATE_NICKNAME);
+        }
+
+        return MemberInfoDto.builder()
+                .memberId(member.getId())
+                .name(member.getName())
+                .nickname(member.getNickname())
+                .email(member.getEmail())
+                .profileImage(member.getProfileImg())
+                .job(member.getJob())
+                .domain(member.getDomain())
+                .introduction(member.getIntroduction())
+                .point(member.getPoint())
+                .yearCareer(member.getYearCareer())
+                .introduction(member.getIntroduction())
+                .build();
+
+    }
+
+    public void updateProfileImage(String accessToken, MultipartFile imageFile) {
+        Member member = getMemberByToken(accessToken);
+        String s3DirName = member.getId().toString() + member.getEmail().replace("@", "-");
+
+        try{
+            s3Uploader.upload(imageFile, s3DirName);
+        }catch (Exception e){
+            throw new BizException(S3UploadExceptionType.CANNOT_CONVERT_FILE);
+        }
+
+
+
     }
 }
