@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,5 +47,11 @@ public class MemberController {
             responseDto = new MemberNicknameCheckResponseDto("false");
             return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.NOT_DUPLICATE_NICKNAME, responseDto), HttpStatus.OK);
         }
+    }
+
+    @PutMapping("/member/profile-image")
+    public ResponseEntity updateProfileImage(@RequestHeader(name = "Authorization") String accessToken, @RequestBody MultipartFile imageFile){
+        memberService.updateProfileImage(accessToken, imageFile);
+        return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ""), HttpStatus.OK);
     }
 }

@@ -9,10 +9,12 @@ import com.mzoffissu.termterm.dto.member.MemberInfoUpdateRequestDto;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.JwtExceptionType;
 import com.mzoffissu.termterm.exception.MemberExceptionType;
+import com.mzoffissu.termterm.exception.S3UploadExceptionType;
 import com.mzoffissu.termterm.jwt.CustomSocialIdAuthToken;
 import com.mzoffissu.termterm.jwt.TokenProvider;
 import com.mzoffissu.termterm.repository.MemberRepository;
 import com.mzoffissu.termterm.repository.RefreshTokenRepository;
+import com.mzoffissu.termterm.service.s3.S3Uploader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -21,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -31,6 +34,7 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final S3Uploader s3Uploader;
 
     public static final String BEARER_PREFIX = "Bearer ";
 
@@ -186,6 +190,20 @@ public class MemberService {
                 .yearCareer(member.getYearCareer())
                 .introduction(member.getIntroduction())
                 .build();
+
+    }
+
+    public void updateProfileImage(String accessToken, MultipartFile imageFile) {
+        Member member = getMemberByToken(accessToken);
+        String s3DirName = member.getId().toString() + member.getEmail().replace("@", "-");
+
+        try{
+            s3Uploader.upload(imageFile, s3DirName);
+        }catch (Exception e){
+            throw new BizException(S3UploadExceptionType.CANNOT_CONVERT_FILE);
+        }
+
+
 
     }
 }
