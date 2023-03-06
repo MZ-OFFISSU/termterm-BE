@@ -2,7 +2,10 @@ package com.mzoffissu.termterm.controller.auth;
 
 import com.mzoffissu.termterm.dto.DefaultResponse;
 import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
+import com.mzoffissu.termterm.dto.member.MemberInfoUpdateRequestDto;
 import com.mzoffissu.termterm.dto.member.MemberNicknameCheckResponseDto;
+import com.mzoffissu.termterm.exception.BizException;
+import com.mzoffissu.termterm.exception.MemberExceptionType;
 import com.mzoffissu.termterm.service.auth.MemberService;
 import com.mzoffissu.termterm.vo.ResponseMessage;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,12 @@ public class MemberController {
         return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), "", memberInfoDto), HttpStatus.OK);
     }
 
+    @PutMapping("/member/info")
+    public ResponseEntity updateMemberInfo(@RequestHeader(name = "Authorization") String accessToken, @RequestBody MemberInfoUpdateRequestDto memberInfoUpdateRequestDto){
+        MemberInfoDto memberInfoDto = memberService.updateMemberInfo(accessToken, memberInfoUpdateRequestDto.trimAll());
+        return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.MEMBER_INFO_UPDATE_SUCCESS, memberInfoDto), HttpStatus.OK);
+    }
+
     @GetMapping("/member/nickname/check")
     public ResponseEntity isNicknameDuplicated(@RequestParam String nickname){
         boolean isDuplicated = memberService.isNicknameDuplicated(nickname);
@@ -31,8 +40,7 @@ public class MemberController {
         MemberNicknameCheckResponseDto responseDto;
 
         if(isDuplicated){
-            responseDto = new MemberNicknameCheckResponseDto("true");
-            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.DUPLICATE_NICKNAME, responseDto), HttpStatus.OK);
+            throw new BizException(MemberExceptionType.DUPLICATE_NICKNAME);
         }
         else{
             responseDto = new MemberNicknameCheckResponseDto("false");

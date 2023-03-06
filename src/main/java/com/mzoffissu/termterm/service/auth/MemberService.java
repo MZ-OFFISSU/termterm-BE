@@ -5,6 +5,7 @@ import com.mzoffissu.termterm.domain.auth.SocialLoginType;
 import com.mzoffissu.termterm.domain.jwt.RefreshToken;
 import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
 import com.mzoffissu.termterm.dto.jwt.TokenDto;
+import com.mzoffissu.termterm.dto.member.MemberInfoUpdateRequestDto;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.JwtExceptionType;
 import com.mzoffissu.termterm.exception.MemberExceptionType;
@@ -144,9 +145,8 @@ public class MemberService {
 
     @Transactional
     public void logout(String token) {
-        String accessToken = resolveToken(token);
-        String memberId = tokenProvider.getMemberIdByToken(accessToken);
-        RefreshToken refreshToken = refreshTokenRepository.findByKey(memberId)
+        Member member = getMemberByToken(token);
+        RefreshToken refreshToken = refreshTokenRepository.findByKey(member.getId().toString())
                 .orElseThrow(() -> new BizException(MemberExceptionType.LOGOUT_MEMBER));
 
         refreshTokenRepository.deleteRefreshToken(refreshToken);
@@ -154,5 +154,38 @@ public class MemberService {
 
     public boolean isNicknameDuplicated(String nickname){
         return memberRepository.existsByNicknameCustom(nickname);
+    }
+
+    protected boolean isNicknameDuplicatedExceptMe(Member member, String newNickname){
+        return memberRepository.existsByNicknameExceptMeCustom(member, newNickname);
+    }
+    @Transactional
+    public MemberInfoDto updateMemberInfo(String token, MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) {
+        Member member = getMemberByToken(token);
+
+        boolean isDuplicated = isNicknameDuplicatedExceptMe(member, memberInfoUpdateRequestDto.getNickname());
+        if(isDuplicated){
+            throw new BizException(MemberExceptionType.DUPLICATE_NICKNAME);
+        }
+        try {
+            member.updateInfo(memberInfoUpdateRequestDto);
+        }catch (Exception e){
+            throw new BizException(MemberExceptionType.DUPLICATE_NICKNAME);
+        }
+
+        return MemberInfoDto.builder()
+                .memberId(member.getId())
+                .name(member.getName())
+                .nickname(member.getNickname())
+                .email(member.getEmail())
+                .profileImage(member.getProfileImg())
+                .job(member.getJob())
+                .domain(member.getDomain())
+                .introduction(member.getIntroduction())
+                .point(member.getPoint())
+                .yearCareer(member.getYearCareer())
+                .introduction(member.getIntroduction())
+                .build();
+
     }
 }

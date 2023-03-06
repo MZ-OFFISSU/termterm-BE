@@ -2,6 +2,7 @@ package com.mzoffissu.termterm.domain.auth;
 
 import com.mzoffissu.termterm.domain.BaseTimeEntity;
 import com.mzoffissu.termterm.domain.Category;
+import com.mzoffissu.termterm.dto.member.MemberInfoUpdateRequestDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -142,4 +143,13 @@ public class Member extends BaseTimeEntity {
         return this;
     }
 
+    public Member updateInfo(MemberInfoUpdateRequestDto memberInfoUpdateRequestDto){
+        this.nickname = memberInfoUpdateRequestDto.getNickname();
+        this.domain = memberInfoUpdateRequestDto.getDomain();
+        this.job = memberInfoUpdateRequestDto.getJob();
+        this.yearCareer = memberInfoUpdateRequestDto.getYearCareer();
+        this.introduction = memberInfoUpdateRequestDto.getIntroduction();
+
+        return this;
+    }
 }
