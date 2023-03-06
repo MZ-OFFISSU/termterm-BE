@@ -24,7 +24,7 @@ public class InquiryController {
 
     @PostMapping("/inquiry/save")
     public @ResponseBody ResponseEntity saveInquiry(@RequestBody InquiryRequestDto inquiryRequestDto){
-        inquiryService.saveInquiry(inquiryRequestDto);
+        inquiryService.saveInquiry(inquiryRequestDto.trimAll());
 
         log.info("문의사항 접수 - {}", inquiryRequestDto.getEmail());
         return new ResponseEntity<>(DefaultResponse.create(HttpStatus.CREATED.value(), ResponseMessage.INQUIRY_ACCEPTED, inquiryRequestDto), HttpStatus.CREATED);
