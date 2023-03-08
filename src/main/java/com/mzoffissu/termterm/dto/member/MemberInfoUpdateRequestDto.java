@@ -18,7 +18,7 @@ public class MemberInfoUpdateRequestDto {
 
     public MemberInfoUpdateRequestDto trimAll(){
         this.nickname = nickname.replace(" ", "");
-        this.domain = nickname.trim();
+        this.domain = domain.trim();
         this.job = job.trim();
         this.introduction = introduction.trim();
 
