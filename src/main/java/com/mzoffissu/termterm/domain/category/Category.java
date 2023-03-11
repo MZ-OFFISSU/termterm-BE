@@ -1,6 +1,6 @@
-package com.mzoffissu.termterm.domain;
+package com.mzoffissu.termterm.domain.category;
 
-import com.mzoffissu.termterm.domain.auth.Member;
+import com.mzoffissu.termterm.domain.Term;
 import lombok.Getter;
 
 import javax.persistence.*;
@@ -15,9 +15,6 @@ public class Category {
     private Long id;
 
     private String name;
-
-    @ManyToMany(mappedBy = "categories")
-    private Set<Member> members;
 
     @ManyToMany(mappedBy = "categories")
     private Set<Term> terms;

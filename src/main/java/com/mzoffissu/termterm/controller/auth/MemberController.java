@@ -3,6 +3,7 @@ package com.mzoffissu.termterm.controller.auth;
 import com.mzoffissu.termterm.dto.DefaultResponse;
 import com.mzoffissu.termterm.dto.auth.MemberInfoDto;
 import com.mzoffissu.termterm.dto.member.MemberInfoUpdateRequestDto;
+import com.mzoffissu.termterm.dto.member.MemberCategoriesRequestDto;
 import com.mzoffissu.termterm.dto.member.MemberNicknameCheckResponseDto;
 import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.exception.MemberExceptionType;
@@ -53,5 +54,11 @@ public class MemberController {
     public ResponseEntity updateProfileImage(@RequestHeader(name = "Authorization") String accessToken, @RequestBody MultipartFile imageFile){
         memberService.updateProfileImage(accessToken, imageFile);
         return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ""), HttpStatus.OK);
+    }
+
+    @PutMapping("/member/category")
+    public ResponseEntity updateCategories(@RequestHeader(name = "Authorization") String accessToken, @RequestBody MemberCategoriesRequestDto memberCategoriesRequestDto){
+        memberService.updateCategories(accessToken, memberCategoriesRequestDto);
+        return new ResponseEntity<>(DefaultResponse.create(HttpStatus.OK.value(), ResponseMessage.MEMBER_CATEGORY_UPDATE_SUCCESS), HttpStatus.OK);
     }
 }

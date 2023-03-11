@@ -1,7 +1,7 @@
 package com.mzoffissu.termterm.domain.auth;
 
 import com.mzoffissu.termterm.domain.BaseTimeEntity;
-import com.mzoffissu.termterm.domain.Category;
+import com.mzoffissu.termterm.domain.category.Category;
 import com.mzoffissu.termterm.dto.member.MemberInfoUpdateRequestDto;
 import lombok.Builder;
 import lombok.Getter;
@@ -101,33 +101,8 @@ public class Member extends BaseTimeEntity {
         return this;
     }
 
-    public Member updateNickname(String nickname){
-        this.nickname = nickname;
-
-        return this;
-    }
-
-    public Member updateIntroduction(String introduction){
-        this.introduction = introduction;
-
-        return this;
-    }
-
-    public Member updateJob(String job){
-        this.job = job;
-
-        return this;
-    }
-
-    public Member updateYearCareer(Integer yearCareer){
-        this.yearCareer = yearCareer;
-
-        return this;
-    }
-
-    public Member updateDomain(String domain){
-        this.domain = domain;
-
+    public Member updateCategories(Set<Category> categories){
+        this.categories = categories;
         return this;
     }
 
