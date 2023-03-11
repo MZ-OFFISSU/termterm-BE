@@ -42,7 +42,8 @@ public class MemberController {
         MemberNicknameCheckResponseDto responseDto;
 
         if(isDuplicated){
-            throw new BizException(MemberExceptionType.DUPLICATE_NICKNAME);
+            responseDto = new MemberNicknameCheckResponseDto("true");
+            return new ResponseEntity<>(DefaultResponse.create(HttpStatus.BAD_REQUEST.value(), MemberExceptionType.DUPLICATE_NICKNAME.getMessage(), responseDto), HttpStatus.BAD_REQUEST);
         }
         else{
             responseDto = new MemberNicknameCheckResponseDto("false");
