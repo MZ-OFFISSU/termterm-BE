@@ -1,5 +1,6 @@
 package com.mzoffissu.termterm.domain;
 
+import com.mzoffissu.termterm.domain.category.Category;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

@@ -8,4 +8,5 @@ public class ResponseMessage {
     public static final String LOGOUT_SUCCESS = "로그아웃 성공";
     public static final String NOT_DUPLICATE_NICKNAME = "사용 가능한 닉네임입니다.";
     public static final String MEMBER_INFO_UPDATE_SUCCESS = "사용자 정보 업데이트 성공";
+    public static final String MEMBER_CATEGORY_UPDATE_SUCCESS = "사용자 관심사 업데이트 성공";
 }
