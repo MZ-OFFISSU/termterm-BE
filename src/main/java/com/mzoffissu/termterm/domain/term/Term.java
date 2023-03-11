@@ -1,4 +1,4 @@
-package com.mzoffissu.termterm.domain;
+package com.mzoffissu.termterm.domain.term;
 
 import com.mzoffissu.termterm.domain.category.Category;
 import lombok.Getter;

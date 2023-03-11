@@ -1,6 +1,6 @@
 package com.mzoffissu.termterm.domain.category;
 
-import com.mzoffissu.termterm.domain.Term;
+import com.mzoffissu.termterm.domain.term.Term;
 import lombok.Getter;
 
 import javax.persistence.*;
