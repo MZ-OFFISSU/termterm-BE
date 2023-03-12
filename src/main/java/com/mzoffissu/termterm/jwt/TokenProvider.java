@@ -1,9 +1,9 @@
 package com.mzoffissu.termterm.jwt;
 
 import com.mzoffissu.termterm.dto.jwt.TokenDto;
-import com.mzoffissu.termterm.exception.AuthorityExceptionType;
-import com.mzoffissu.termterm.exception.BizException;
-import com.mzoffissu.termterm.exception.JwtExceptionType;
+import com.mzoffissu.termterm.response.exception.AuthorityExceptionType;
+import com.mzoffissu.termterm.response.exception.BizException;
+import com.mzoffissu.termterm.response.exception.JwtExceptionType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

@@ -2,8 +2,8 @@ package com.mzoffissu.termterm.service.auth;
 
 import com.mzoffissu.termterm.domain.auth.Authority;
 import com.mzoffissu.termterm.domain.auth.Member;
-import com.mzoffissu.termterm.exception.BizException;
-import com.mzoffissu.termterm.exception.MemberExceptionType;
+import com.mzoffissu.termterm.response.exception.BizException;
+import com.mzoffissu.termterm.response.exception.MemberExceptionType;
 import com.mzoffissu.termterm.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

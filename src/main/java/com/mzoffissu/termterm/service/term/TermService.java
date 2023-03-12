@@ -5,7 +5,6 @@ import com.mzoffissu.termterm.domain.term.Term;
 import com.mzoffissu.termterm.dto.category.CategoryDto;
 import com.mzoffissu.termterm.dto.term.TermDto;
 import com.mzoffissu.termterm.dto.term.TermSearchResponseDto;
-import com.mzoffissu.termterm.exception.BizException;
 import com.mzoffissu.termterm.repository.TermRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

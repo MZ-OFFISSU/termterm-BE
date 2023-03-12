@@ -1,6 +1,6 @@
 package com.mzoffissu.termterm.controller.auth;
 
-import com.mzoffissu.termterm.exception.AuthorityExceptionType;
+import com.mzoffissu.termterm.response.exception.AuthorityExceptionType;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;

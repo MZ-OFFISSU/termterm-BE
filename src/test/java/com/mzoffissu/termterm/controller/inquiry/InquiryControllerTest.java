@@ -1,6 +1,7 @@
 package com.mzoffissu.termterm.controller.inquiry;
 
-import com.mzoffissu.termterm.exception.InquiryExceptionType;
+import com.mzoffissu.termterm.response.exception.InquiryExceptionType;
+import com.mzoffissu.termterm.response.success.InquirySuccessType;
 import com.mzoffissu.termterm.vo.ResponseMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -22,7 +23,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -77,7 +77,7 @@ class InquiryControllerTest {
 
         //then
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(responseJson.get("message")).isEqualTo(ResponseMessage.INQUIRY_ACCEPTED);
+        assertThat(responseJson.get("message")).isEqualTo(InquirySuccessType.INQUIRY_ACCEPTED.getMessage());
     }
 
     @Test
