@@ -207,6 +207,17 @@ public class MemberService {
             throw new BizException(MemberExceptionType.DUPLICATE_NICKNAME);
         }
 
+        Set<Category> memberCategories = member.getCategories();
+        List<CategoryDto> categoryDtos = new ArrayList<>();
+        for(Category category : memberCategories){
+            CategoryDto categoryDto = CategoryDto.builder()
+                    .id(category.getId())
+                    .name(category.getName())
+                    .build();
+
+            categoryDtos.add(categoryDto);
+        }
+
         return MemberInfoDto.builder()
                 .memberId(member.getId())
                 .name(member.getName())
@@ -219,8 +230,8 @@ public class MemberService {
                 .point(member.getPoint())
                 .yearCareer(member.getYearCareer())
                 .introduction(member.getIntroduction())
+                .categories(categoryDtos)
                 .build();
-
     }
 
     @Transactional
