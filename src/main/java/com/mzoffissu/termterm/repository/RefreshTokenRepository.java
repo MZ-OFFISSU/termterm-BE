@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import java.util.Optional;
 
 @Repository
@@ -21,11 +22,15 @@ public class RefreshTokenRepository{
     }
 
     public Optional<RefreshToken> findByKey(String key){
-        RefreshToken refreshToken = em
-                .createQuery("select t from RefreshToken t where t.key = :key", RefreshToken.class)
-                .setParameter("key", key)
-                .getSingleResult();
-        return Optional.of(refreshToken);
+        try {
+            RefreshToken refreshToken = em
+                    .createQuery("select t from RefreshToken t where t.key = :key", RefreshToken.class)
+                    .setParameter("key", key)
+                    .getSingleResult();
+            return Optional.of(refreshToken);
+        }catch (NoResultException e){
+            return Optional.empty();
+        }
     }
 
     public boolean existsByKey(String key){

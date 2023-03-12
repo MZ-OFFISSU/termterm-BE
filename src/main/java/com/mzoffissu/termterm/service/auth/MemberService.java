@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.NoResultException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -179,9 +180,9 @@ public class MemberService {
     @Transactional
     public void logout(String token) {
         Member member = getMemberByToken(token);
+
         RefreshToken refreshToken = refreshTokenRepository.findByKey(member.getId().toString())
                 .orElseThrow(() -> new BizException(MemberExceptionType.LOGOUT_MEMBER));
-
         refreshTokenRepository.deleteRefreshToken(refreshToken);
     }
 

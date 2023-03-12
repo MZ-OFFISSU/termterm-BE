@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ExceptionAspect {
 
-    @AfterThrowing(pointcut = "execution(* com.mzoffissu.termterm.controller.*.*(..))", throwing = "e")
+    @AfterThrowing(pointcut = "execution(* com.mzoffissu.termterm.*.*.*(..))", throwing = "e")
     public ResponseEntity afterThrowingException(BizException e){
         log.error(e.getMessage());
         return new ResponseEntity<>(DefaultResponse.create(e.getBaseExceptionType()), e.getBaseExceptionType().getHttpStatus());
