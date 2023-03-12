@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.NoResultException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -179,9 +180,9 @@ public class MemberService {
     @Transactional
     public void logout(String token) {
         Member member = getMemberByToken(token);
+
         RefreshToken refreshToken = refreshTokenRepository.findByKey(member.getId().toString())
                 .orElseThrow(() -> new BizException(MemberExceptionType.LOGOUT_MEMBER));
-
         refreshTokenRepository.deleteRefreshToken(refreshToken);
     }
 
@@ -206,6 +207,17 @@ public class MemberService {
             throw new BizException(MemberExceptionType.DUPLICATE_NICKNAME);
         }
 
+        Set<Category> memberCategories = member.getCategories();
+        List<CategoryDto> categoryDtos = new ArrayList<>();
+        for(Category category : memberCategories){
+            CategoryDto categoryDto = CategoryDto.builder()
+                    .id(category.getId())
+                    .name(category.getName())
+                    .build();
+
+            categoryDtos.add(categoryDto);
+        }
+
         return MemberInfoDto.builder()
                 .memberId(member.getId())
                 .name(member.getName())
@@ -218,8 +230,8 @@ public class MemberService {
                 .point(member.getPoint())
                 .yearCareer(member.getYearCareer())
                 .introduction(member.getIntroduction())
+                .categories(categoryDtos)
                 .build();
-
     }
 
     @Transactional

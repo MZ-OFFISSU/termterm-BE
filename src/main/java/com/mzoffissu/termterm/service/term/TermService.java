@@ -6,6 +6,8 @@ import com.mzoffissu.termterm.dto.category.CategoryDto;
 import com.mzoffissu.termterm.dto.term.TermDto;
 import com.mzoffissu.termterm.dto.term.TermSearchResponseDto;
 import com.mzoffissu.termterm.repository.TermRepository;
+import com.mzoffissu.termterm.response.exception.BizException;
+import com.mzoffissu.termterm.response.success.TermSuccessType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,8 +21,10 @@ import java.util.List;
 public class TermService {
     private final TermRepository termRepository;
     public TermSearchResponseDto searchTerm(String name) {
-        List<Term> termsResult = termRepository.findByNameContainingIgnoreCase(name)
-                .orElseThrow(() -> new RuntimeException("부러ㅘ로라ㅗ라라"));
+        List<Term> termsResult = termRepository.findByNameContainingIgnoreCase(name);
+        if(termsResult.isEmpty()){
+            throw new BizException(TermSuccessType.TERM_SEARCH_NO_RESULT);
+        }
 
         List<TermDto> terms = new ArrayList<>();
         for(Term term : termsResult){
