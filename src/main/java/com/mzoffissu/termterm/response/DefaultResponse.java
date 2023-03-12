@@ -1,4 +1,4 @@
-package com.mzoffissu.termterm.dto;
+package com.mzoffissu.termterm.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,14 +18,14 @@ public class DefaultResponse<T> {
         this.data = null;
     }
 
-    public static<T> DefaultResponse<T> create(final Integer status, final String message){
-        return create(status, message, null);
+    public static<T> DefaultResponse<T> create(final BaseResponseType response){
+        return create(response, null);
     }
 
-    public static<T> DefaultResponse<T> create(final Integer status, final String message, final T t){
+    public static<T> DefaultResponse<T> create(final BaseResponseType response, final T t){
         return DefaultResponse.<T>builder()
-                .status(status)
-                .message(message)
+                .status(response.getCode())
+                .message(response.getMessage())
                 .data(t)
                 .build();
     }

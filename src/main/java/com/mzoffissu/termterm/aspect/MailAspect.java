@@ -1,6 +1,6 @@
 package com.mzoffissu.termterm.aspect;
 
-import com.mzoffissu.termterm.dto.DefaultResponse;
+import com.mzoffissu.termterm.response.DefaultResponse;
 import com.mzoffissu.termterm.dto.inquiry.InquiryRequestDto;
 import com.mzoffissu.termterm.service.inquiry.MailService;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.mzoffissu.termterm.jwt;
 
-import com.mzoffissu.termterm.exception.BizException;
-import com.mzoffissu.termterm.exception.MemberExceptionType;
+import com.mzoffissu.termterm.response.exception.BizException;
+import com.mzoffissu.termterm.response.exception.MemberExceptionType;
 import com.mzoffissu.termterm.service.auth.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

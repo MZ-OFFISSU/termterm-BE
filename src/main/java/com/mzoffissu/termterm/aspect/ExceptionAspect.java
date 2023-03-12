@@ -1,7 +1,7 @@
 package com.mzoffissu.termterm.aspect;
 
-import com.mzoffissu.termterm.dto.DefaultResponse;
-import com.mzoffissu.termterm.exception.BizException;
+import com.mzoffissu.termterm.response.DefaultResponse;
+import com.mzoffissu.termterm.response.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
@@ -16,6 +16,6 @@ public class ExceptionAspect {
     @AfterThrowing(pointcut = "execution(* com.mzoffissu.termterm.controller.*.*(..))", throwing = "e")
     public ResponseEntity afterThrowingException(BizException e){
         log.error(e.getMessage());
-        return new ResponseEntity<>(DefaultResponse.create(e.getBaseExceptionType().getHttpStatus().value(), e.getMessage()), e.getBaseExceptionType().getHttpStatus());
+        return new ResponseEntity<>(DefaultResponse.create(e.getBaseExceptionType()), e.getBaseExceptionType().getHttpStatus());
     }
 }
