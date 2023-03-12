@@ -16,7 +16,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
     public boolean existsByNicknameCustom(String nickname) {
         try{
             em.
-                createQuery("select m from Member m where m.nickname = :nickname", Member.class)
+                createQuery("select m from Member m where lower(m.nickname) = lower(:nickname)", Member.class)
                 .setParameter("nickname", nickname)
                 .getSingleResult();
             return true;
@@ -29,7 +29,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom{
     public boolean existsByNicknameExceptMeCustom(Member member, String newNickname) {
         try{
             Member foundMember = em.
-                createQuery("select m from Member m where m.nickname = :nickname", Member.class)
+                createQuery("select m from Member m where lower(m.nickname) = lower(:nickname)", Member.class)
                 .setParameter("nickname", newNickname)
                 .getSingleResult();
 
