@@ -4,15 +4,12 @@ import com.mzoffissu.termterm.domain.auth.Member;
 import com.mzoffissu.termterm.dto.jwt.TokenDto;
 import com.mzoffissu.termterm.response.exception.AuthorityExceptionType;
 import com.mzoffissu.termterm.response.success.AuthSuccessType;
-import com.mzoffissu.termterm.service.auth.MemberService;
+import com.mzoffissu.termterm.service.auth.*;
 import com.mzoffissu.termterm.domain.auth.SocialLoginType;
 import com.mzoffissu.termterm.response.DefaultResponse;
 import com.mzoffissu.termterm.dto.auth.TokenResponseDto;
 import com.mzoffissu.termterm.dto.auth.MemberInitialInfoDto;
 import com.mzoffissu.termterm.response.exception.BizException;
-import com.mzoffissu.termterm.service.auth.GoogleService;
-import com.mzoffissu.termterm.service.auth.KakaoService;
-import com.mzoffissu.termterm.service.auth.SocialAuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +23,7 @@ public class AuthController {
     private final GoogleService googleService;
     private final KakaoService kakaoService;
     private final MemberService memberService;
+    private final TokenService tokenService;
 
     @PostMapping("/auth/{socialType}")
     public ResponseEntity login(@RequestHeader(name = "auth-code", required = false) String authorizationCode, @PathVariable("socialType") String socialType){
@@ -60,7 +58,7 @@ public class AuthController {
         socialAuthService.signup(memberInfo);
         Member member = memberService.findByEmailAndSocialType(memberInfo.getEmail(), socialLoginType);
 
-        tokenDto = memberService.createToken(member, memberInfo.getSocialId());
+        tokenDto = tokenService.createToken(member, memberInfo.getSocialId());
 
         log.info("로그인 : {} ({})", memberInfo.getEmail(), memberInfo.getName());
         return new ResponseEntity<>(DefaultResponse.create(AuthSuccessType.LOGIN_SUCCESS, tokenDto), AuthSuccessType.LOGIN_SUCCESS.getHttpStatus());
@@ -68,13 +66,14 @@ public class AuthController {
 
     @GetMapping("/auth/reissue")
     public ResponseEntity reissue(@RequestHeader("Authorization") String refreshToken){
-        TokenDto tokenDto = memberService.reissue(refreshToken);
+        TokenDto tokenDto = tokenService.reissue(refreshToken);
         return new ResponseEntity<>(DefaultResponse.create(AuthSuccessType.TOKEN_REISSUED, tokenDto), AuthSuccessType.TOKEN_REISSUED.getHttpStatus());
     }
 
     @GetMapping("/auth/logout")
     public ResponseEntity logout(@RequestHeader("Authorization") String accessToken){
-            memberService.logout(accessToken);
-            return new ResponseEntity<>(DefaultResponse.create(AuthSuccessType.LOGOUT_SUCCESS), AuthSuccessType.LOGOUT_SUCCESS.getHttpStatus());
+        Member member = tokenService.getMemberByToken(accessToken);
+        memberService.logout(member);
+        return new ResponseEntity<>(DefaultResponse.create(AuthSuccessType.LOGOUT_SUCCESS), AuthSuccessType.LOGOUT_SUCCESS.getHttpStatus());
     }
 }

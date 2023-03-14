@@ -1,5 +1,6 @@
 package com.mzoffissu.termterm.service.term;
 
+import com.mzoffissu.termterm.domain.auth.Member;
 import com.mzoffissu.termterm.domain.category.Category;
 import com.mzoffissu.termterm.domain.term.Term;
 import com.mzoffissu.termterm.dto.category.CategoryDto;
