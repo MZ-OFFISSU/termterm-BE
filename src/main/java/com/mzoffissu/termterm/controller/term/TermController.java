@@ -1,5 +1,6 @@
 package com.mzoffissu.termterm.controller.term;
 
+import com.mzoffissu.termterm.dto.term.TermDto;
 import com.mzoffissu.termterm.response.DefaultResponse;
 import com.mzoffissu.termterm.dto.term.TermSearchResponseDto;
 import com.mzoffissu.termterm.response.success.TermSuccessType;
@@ -25,4 +26,10 @@ public class TermController {
         return new ResponseEntity<>(DefaultResponse.create(TermSuccessType.TERM_SEARCH_SUCCESS, termSearchResponseDto), TermSuccessType.TERM_SEARCH_SUCCESS.getHttpStatus());
     }
 
+    @GetMapping("/term/detail")
+    public ResponseEntity detailTerm(@RequestHeader(name = "Authorization") String accessToken, @RequestParam(name = "id") Long termId){
+        tokenService.getMemberByToken(accessToken);
+        TermDto termDto = termService.detailTerm(termId);
+        return new ResponseEntity<>(DefaultResponse.create(TermSuccessType.TERM_DETAIL_SUCCESS, termDto), TermSuccessType.TERM_DETAIL_SUCCESS.getHttpStatus());
+    }
 }
