@@ -9,5 +9,5 @@ import java.util.List;
 @Getter
 @Builder
 public class TermSearchResponseDto {
-    private List<TermDto> terms = new ArrayList<>();
+    private List<TermIdNameDto> terms = new ArrayList<>();
 }

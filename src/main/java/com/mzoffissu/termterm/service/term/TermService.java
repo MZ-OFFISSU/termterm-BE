@@ -1,15 +1,13 @@
 package com.mzoffissu.termterm.service.term;
 
-import com.mzoffissu.termterm.domain.auth.Member;
 import com.mzoffissu.termterm.domain.category.Category;
-import com.mzoffissu.termterm.domain.category.CategoryType;
 import com.mzoffissu.termterm.domain.comment.Comment;
 import com.mzoffissu.termterm.domain.comment.CommentStatus;
 import com.mzoffissu.termterm.domain.term.Term;
 import com.mzoffissu.termterm.dto.category.CategoryDto;
 import com.mzoffissu.termterm.dto.comment.CommentDto;
-import com.mzoffissu.termterm.dto.term.TermDetailResponseDto;
 import com.mzoffissu.termterm.dto.term.TermDto;
+import com.mzoffissu.termterm.dto.term.TermIdNameDto;
 import com.mzoffissu.termterm.dto.term.TermSearchResponseDto;
 import com.mzoffissu.termterm.repository.TermRepository;
 import com.mzoffissu.termterm.response.exception.BizException;
@@ -32,27 +30,14 @@ public class TermService {
             throw new BizException(TermExceptionType.TERM_SEARCH_NO_RESULT);
         }
 
-        List<TermDto> terms = new ArrayList<>();
+        List<TermIdNameDto> terms = new ArrayList<>();
         for(Term term : termsResult){
-            List<CategoryDto> categories = new ArrayList<>();
-            for(Category category : term.getCategories()){
-                CategoryDto categoryDto = CategoryDto.builder()
-                        .id(category.getId())
-                        .name(category.getName())
-                        .build();
-
-                categories.add(categoryDto);
-            }
-
-            TermDto termDto = TermDto.builder()
+            TermIdNameDto termIdNameDto = TermIdNameDto.builder()
                     .id(term.getId())
                     .name(term.getName())
-                    .description(term.getDescription())
-                    .source(term.getSource())
-                    .categories(categories)
                     .build();
 
-            terms.add(termDto);
+            terms.add(termIdNameDto);
         }
 
         return TermSearchResponseDto.builder()
