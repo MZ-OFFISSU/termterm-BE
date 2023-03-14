@@ -5,7 +5,6 @@ import com.mzoffissu.termterm.response.DefaultResponse;
 import com.mzoffissu.termterm.dto.inquiry.InquiryRequestDto;
 import com.mzoffissu.termterm.response.success.InquirySuccessType;
 import com.mzoffissu.termterm.service.inquiry.InquiryService;
-import com.mzoffissu.termterm.service.inquiry.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

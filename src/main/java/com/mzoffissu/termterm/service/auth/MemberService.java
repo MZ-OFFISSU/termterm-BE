@@ -43,11 +43,9 @@ import java.util.Set;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
-    private final TokenProvider tokenProvider;
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final TokenService tokenService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final S3Uploader s3Uploader;
-    public static final String BEARER_PREFIX = "Bearer ";
     public static final Long PM = CategoryType.PM.getId();
     public static final Long MARKETING = CategoryType.MARKETING.getId();
     public static final Long DEVELOPMENT = CategoryType.DEVELOPMENT.getId();
@@ -55,46 +53,16 @@ public class MemberService {
     public static final Long BUSINESS = CategoryType.BUSINESS.getId();
     public static final Long IT = CategoryType.IT.getId();
 
-    /**
-     * Username과 Password 대신 Member의 ID와 SocialID로 토큰 생성
-     */
-    @Transactional
-    public TokenDto createToken(Member member, String memberSocialId){
-        String memberId = member.getId().toString();
 
-        CustomSocialIdAuthToken authenticationToken
-                = new CustomSocialIdAuthToken(memberId, memberSocialId);
-
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String accessToken = tokenProvider.createAccessToken(memberId, authentication);
-
-        // 만약 해당 유저의 refreshToken이 이미 있다면 삭제하고 재생성
-        if(refreshTokenRepository.existsByKey(memberId)){
-            refreshTokenRepository.deleteRefreshToken(refreshTokenRepository.findByKey(memberId).orElseThrow(() -> new BizException(MemberExceptionType.NOT_FOUND_USER)));
-        }
-
-        String refreshToken = tokenProvider.createRefreshToken(memberId, authentication);
-        refreshTokenRepository.saveRefreshToken(
-                RefreshToken.builder()
-                        .key(memberId)
-                        .value(refreshToken)
-                        .build()
-        );
-
-        return tokenProvider.createTokenDto(accessToken, refreshToken);
-    }
 
     public Member findByEmailAndSocialType(String email, SocialLoginType socialLoginType){
         return memberRepository.findByEmailAndSocialType(email, socialLoginType)
                 .orElseThrow(() -> new BizException(MemberExceptionType.NOT_FOUND_USER));
     }
 
-    public MemberInfoDto getMemberInfo(String token) {
-        Member member = getMemberByToken(token);
-
+    public MemberInfoDto getMemberInfo(Member member) {
         Set<Category> memberCategories = member.getCategories();
+
         List<CategoryDto> categoryDtos = new ArrayList<>();
         for(Category category : memberCategories){
             CategoryDto categoryDto = CategoryDto.builder()
@@ -121,66 +89,10 @@ public class MemberService {
                 .build();
     }
 
-    private String resolveToken(String token) {
-        if (StringUtils.hasText(token) && token.startsWith(BEARER_PREFIX)) {
-            return token.substring(7);
-        }
 
-        return null;
-    }
-
-    public Member getMemberByToken(String token){
-        String accessToken = resolveToken(token);
-        String memberId = tokenProvider.getMemberIdByToken(accessToken);
-
-        return memberRepository.findById(Long.parseLong(memberId))
-                .orElseThrow(() -> new BizException(MemberExceptionType.NOT_FOUND_USER));
-    }
 
     @Transactional
-    public TokenDto reissue(String rfToken) {
-        String refreshToken = resolveToken(rfToken);
-
-        Integer refreshTokenFlag = tokenProvider.validateToken(refreshToken);
-
-        // refreshToken을 검증하고 상황에 맞는 오류를 내보낸다.
-        if(refreshTokenFlag == -1){
-            throw new BizException(JwtExceptionType.MALFORMED_JWT);
-        }else if(refreshTokenFlag == -2){
-            throw new BizException(JwtExceptionType.REFRESH_TOKEN_EXPIRED);
-        }else if(refreshTokenFlag == -3){
-            throw new BizException(JwtExceptionType.UNSUPPORTED_JWT);
-        }else if(refreshTokenFlag == -4){
-            throw new BizException(JwtExceptionType.BAD_TOKEN);
-        }
-
-        // refreshToken에서 memberId 가져오기
-        String memberId = tokenProvider.getMemberIdByToken(refreshToken);
-
-        // repo 에서 id를 기반으로 refresh token을 가져온다.
-        RefreshToken originRefreshToken = refreshTokenRepository.findByKey(memberId)
-                .orElseThrow(() -> new BizException(MemberExceptionType.LOGOUT_MEMBER));
-
-        // Refresh token 일치하는지 검사
-        if(!originRefreshToken.getValue().equals(refreshToken)){
-            throw new BizException(JwtExceptionType.BAD_TOKEN); // 토큰이 일치하지 않습니다.
-        }
-
-        // 새로운 토큰 생성
-        Member member = memberRepository.findById(Long.parseLong(memberId))
-                .orElseThrow(() -> new BizException(MemberExceptionType.NOT_FOUND_USER));
-        String socialId = member.getSocialId();
-
-        TokenDto tokenDto = createToken(member, socialId);
-        originRefreshToken.updateValue(tokenDto.getRefreshToken());
-
-        return tokenDto;
-    }
-
-    @Transactional
-    public void logout(String token) {
-        Member member = getMemberByToken(token);
-
+    public void logout(Member member) {
         RefreshToken refreshToken = refreshTokenRepository.findByKey(member.getId().toString())
                 .orElseThrow(() -> new BizException(MemberExceptionType.LOGOUT_MEMBER));
         refreshTokenRepository.deleteRefreshToken(refreshToken);
@@ -194,9 +106,7 @@ public class MemberService {
         return memberRepository.existsByNicknameExceptMeCustom(member, newNickname);
     }
     @Transactional
-    public MemberInfoDto updateMemberInfo(String token, MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) {
-        Member member = getMemberByToken(token);
-
+    public MemberInfoDto updateMemberInfo(Member member, MemberInfoUpdateRequestDto memberInfoUpdateRequestDto) {
         boolean isDuplicated = isNicknameDuplicatedExceptMe(member, memberInfoUpdateRequestDto.getNickname());
         if(isDuplicated){
             throw new BizException(MemberExceptionType.DUPLICATE_NICKNAME);
@@ -235,8 +145,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void updateProfileImage(String accessToken, MultipartFile imageFile) {
-        Member member = getMemberByToken(accessToken);
+    public void updateProfileImage(Member member, MultipartFile imageFile) {
         String s3DirName = member.getId().toString() + member.getEmail().replace("@", "-");
 
         try{
@@ -250,9 +159,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void updateCategories(String accessToken, MemberCategoriesRequestDto memberCategoriesRequestDto) {
-        Member member = getMemberByToken(accessToken);
-
+    public void updateCategories(Member member, MemberCategoriesRequestDto memberCategoriesRequestDto) {
         Set<Category> newCategories = new HashSet<>();
 
         if (memberCategoriesRequestDto.isPm()) newCategories.add(categoryRepository.getById(PM));
