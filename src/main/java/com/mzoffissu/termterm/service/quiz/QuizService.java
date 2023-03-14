@@ -19,7 +19,6 @@ public class QuizService {
 
     public List<QuizDailyDto> getDailyQuiz() {
         List<QuizDailyDto> result = new ArrayList<>();
-        Random random = new Random();
 
         for(int i=0; i<5; i++) {
             List<Term> answerSheet = quizRepository.findRandomBy();
@@ -28,13 +27,14 @@ public class QuizService {
                 options.add(answerSheet.get(j).getName().split(" :: ")[0]);
             }
 
-            int randN = random.nextInt(2) + 1;
-            long answerId = answerSheet.get(randN).getId();
-            String description = answerSheet.get(randN).getDescription();
+            Random random = new Random();
+            int randN = random.nextInt(3) + 1;
+            long answerId = answerSheet.get(randN-1).getId();
+            String description = answerSheet.get(randN-1).getDescription();
 
             QuizDailyDto quiz = QuizDailyDto.builder()
                     .quiz(options)
-                    .answerId((long) randN + 1)
+                    .answerId((long) randN)
                     .termId(answerId).description(description).build();
             result.add(i, quiz);
         }
