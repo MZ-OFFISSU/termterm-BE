@@ -7,10 +7,10 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
-public enum TermSuccessType implements BaseResponseType {
-    TERM_SEARCH_SUCCESS(2051, "용어 검색 성공", HttpStatus.OK),
-    TERM_DETAIL_SUCCESS(2052, "용어 상세 정보 조회 성공", HttpStatus.OK),
+public enum CommentSuccessType implements BaseResponseType {
+    COMMENT_POST_SUCCESS(2061, "나만의 용어 설명 등록 완료", HttpStatus.CREATED),
     ;
+
 
     private final Integer code;
     private final String message;

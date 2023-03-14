@@ -8,6 +8,6 @@ import java.util.List;
 
 @Getter
 @Builder
-public class TermSearchResponseDto {
-    private List<TermIdNameDto> terms = new ArrayList<>();
+public class TermDetailResponseDto {
+    private List<TermDto> terms = new ArrayList<>();
 }
