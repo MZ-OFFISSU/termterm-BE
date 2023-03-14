@@ -2,6 +2,7 @@ package com.mzoffissu.termterm.domain.auth;
 
 import com.mzoffissu.termterm.domain.BaseTimeEntity;
 import com.mzoffissu.termterm.domain.category.Category;
+import com.mzoffissu.termterm.domain.comment.Comment;
 import com.mzoffissu.termterm.dto.member.MemberInfoUpdateRequestDto;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +12,9 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -77,6 +80,10 @@ public class Member extends BaseTimeEntity {
             inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "authority_name")}
     )
     private Set<Authority> authorities = new HashSet<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<Comment> comments = new ArrayList<>();
+
 
     @Builder
     public Member(String socialId, String name, String email, String profileImg, String nickname, SocialLoginType socialLoginType, Set<Authority> authorities) {

@@ -7,9 +7,9 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
-public enum InquiryExceptionType implements BaseResponseType {
-    INVALID_INQUIRY_TYPE(4044, "문의 유형이 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
-    INVALID_INQUIRY_ID(4045, "문의사항이 존재하지 않거나 삭제되었습니다.", HttpStatus.NOT_FOUND),
+public enum TermExceptionType implements BaseResponseType {
+    TERM_SEARCH_NO_RESULT(4051, "검색어에 대한 검색 결과가 없습니다.", HttpStatus.BAD_REQUEST),
+    TERM_ID_NO_RESULT(4052, "단어가 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
     ;
 
     private final Integer code;

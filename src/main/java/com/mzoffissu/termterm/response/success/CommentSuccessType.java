@@ -7,11 +7,10 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
-public enum AuthSuccessType implements BaseResponseType {
-    LOGIN_SUCCESS(2011, "로그인 성공", HttpStatus.OK),
-    TOKEN_REISSUED(2012, "토큰 재발급 완료", HttpStatus.OK),
-    LOGOUT_SUCCESS(2013, "로그아웃 성공", HttpStatus.NO_CONTENT),
+public enum CommentSuccessType implements BaseResponseType {
+    COMMENT_POST_SUCCESS(2061, "나만의 용어 설명 등록 완료", HttpStatus.CREATED),
     ;
+
 
     private final Integer code;
     private final String message;

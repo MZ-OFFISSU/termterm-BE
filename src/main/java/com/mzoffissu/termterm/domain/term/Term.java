@@ -1,11 +1,14 @@
 package com.mzoffissu.termterm.domain.term;
 
 import com.mzoffissu.termterm.domain.category.Category;
+import com.mzoffissu.termterm.domain.comment.Comment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -28,5 +31,8 @@ public class Term {
             joinColumns = @JoinColumn(name = "TERM_ID"),
             inverseJoinColumns = @JoinColumn(name = "CATEGORY_ID"))
     private Set<Category> categories = new HashSet<>();
+
+    @OneToMany(mappedBy = "term")
+    private List<Comment> comments = new ArrayList<>();
 
 }
