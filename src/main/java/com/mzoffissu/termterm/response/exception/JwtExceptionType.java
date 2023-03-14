@@ -16,7 +16,8 @@ public enum JwtExceptionType implements BaseResponseType {
     BAD_TOKEN(4005, "잘못된 토큰 값입니다.", HttpStatus.BAD_REQUEST),
     EMPTY_TOKEN(4006, "토큰 값이 비어있습니다.", HttpStatus.BAD_REQUEST),
     MALFORMED_JWT(4007, "잘못된 JWT 서명입니다.", HttpStatus.BAD_REQUEST),
-    UNSUPPORTED_JWT(4008, "지원되지 않는 JWT 토큰입니다.", HttpStatus.BAD_REQUEST);
+    UNSUPPORTED_JWT(4008, "지원되지 않는 JWT 토큰입니다.", HttpStatus.BAD_REQUEST),
+    ;
 
     private final Integer code;
     private final String message;
