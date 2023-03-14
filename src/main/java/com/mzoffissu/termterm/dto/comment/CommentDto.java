@@ -12,4 +12,7 @@ public class CommentDto {
     private String source;
     private Integer likeCnt;
     private CommentStatus status;
+    private String authorName;
+    private String authorJob;
+    private String createdDate;
 }
