@@ -34,7 +34,8 @@ public class QuizService {
 
             QuizDailyDto quiz = QuizDailyDto.builder()
                     .quiz(options)
-                    .answer(answerId).description(description).build();
+                    .answerId((long) randN + 1)
+                    .termId(answerId).description(description).build();
             result.add(i, quiz);
         }
         return result;
